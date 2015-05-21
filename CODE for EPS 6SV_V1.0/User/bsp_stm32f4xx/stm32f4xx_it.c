@@ -142,29 +142,7 @@ void DebugMon_Handler(void)
 {
 }
 
-/*********************************************************************************************************
-*串口1中断接受函数
-**********************************************************************************************************
-*/
-void USART1_IRQHandler(void)
-{
-	OSIntEnter();
-	if(USART_GetITStatus(USART1, USART_IT_RXNE)!=RESET)
-	{
-		msg[RxCounter++]=USART_ReceiveData(USART1);
-		if (msg[0]!=0xAA)
-		{
-			RxCounter=0;
-		}
-		if (RxCounter>5)
-		{
-			msg[RxCounter]=0;
-			RxCounter=0;
-			OSMboxPost(COM1_Mbox,(void*)&msg);
-		}
-	}
-	OSIntExit();
-}	
+
 	
            
 

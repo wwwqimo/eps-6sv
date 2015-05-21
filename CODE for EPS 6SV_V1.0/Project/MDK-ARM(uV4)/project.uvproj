@@ -526,19 +526,9 @@
               <FilePath>..\..\User\bsp_stm32f4xx\bsp.h</FilePath>
             </File>
             <File>
-              <FileName>bsp_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_key.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_printf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_printf.c</FilePath>
             </File>
             <File>
               <FileName>bsp_adc.c</FileName>
@@ -559,6 +549,11 @@
               <FileName>bsp_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1384,19 +1379,9 @@
               <FilePath>..\..\User\bsp_stm32f4xx\bsp.h</FilePath>
             </File>
             <File>
-              <FileName>bsp_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_key.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_printf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_printf.c</FilePath>
             </File>
             <File>
               <FileName>bsp_adc.c</FileName>
@@ -1417,6 +1402,11 @@
               <FileName>bsp_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2242,19 +2232,9 @@
               <FilePath>..\..\User\bsp_stm32f4xx\bsp.h</FilePath>
             </File>
             <File>
-              <FileName>bsp_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_key.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_printf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_printf.c</FilePath>
             </File>
             <File>
               <FileName>bsp_adc.c</FileName>
@@ -2275,6 +2255,11 @@
               <FileName>bsp_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp_stm32f4xx\src\bsp_uart.c</FilePath>
             </File>
           </Files>
         </Group>

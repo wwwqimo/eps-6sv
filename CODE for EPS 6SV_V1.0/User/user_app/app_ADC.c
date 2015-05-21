@@ -15,10 +15,10 @@ extern __IO uint16_t uhADCConvertedValue[NumofConv];
 #define AD7490_REF       2500   //AD7490 参考电压
 #define AD7490_FullScale 4095  //ad7490量程
 
-#define size_filter 10    //定义滑动滤波缓存区大小
+#define size_filter 5    //定义滑动滤波缓存区大小
 //adc map,对应eps_hk_adc_t 结构体中数据在读取到的原值中的位置，
 //其中0--15对应于mcu adc ，16-31对应于ad7490读取到的数据
-uint8_t adc_map[]={0,2,4,5,6,7, /*c_s[6]*/
+const uint8_t adc_map[]={0,2,4,5,6,7, /*c_s[6]*/
 									13,1,3,9,8,15,/*v_s[6]*/
 									12,10,11,26,27,/*c_sva,c_bus,v_bus,v_5v,v_3v*/
 									29,30,31,20,19,/*c_reg[5]*/
@@ -66,13 +66,9 @@ void ADCSample(void)
 		//将数据填入机构提，并转换为真实值
 		peps_hk_adc = adc_to_real(pdata,peps_hk_adc);
 		#if USER_DEBUG_EN > 0
-
 		eps_print(print_adc);
     #endif
-//		for(i=0;i<16;i++)
-//		{
-//			 EPS_Update();
-//		}
+		eps_data_handling();
 		OSTimeDlyHMSM(0, 0, 0, 1000);	
 	}
 }

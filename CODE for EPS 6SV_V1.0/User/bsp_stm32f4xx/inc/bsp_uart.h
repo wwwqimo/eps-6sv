@@ -15,7 +15,7 @@
 #define __BSP_UART_H
 
 void bsp_InitUart(void);
-
+void USART3_IRQHandler(void);
 #endif
 
 

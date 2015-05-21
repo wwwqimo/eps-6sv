@@ -16,8 +16,8 @@
 */
 
 #include "bsp.h"
-
-
+#include <os_cpu.h>
+#include "includes.h"
 /* 定义每个串口结构体变量 */
 #if UART1_FIFO_EN == 1
 	static UART_T g_tUart1;
@@ -103,7 +103,7 @@ UART_T *ComToUart(COM_PORT_E _ucPort)
 		#if UART2_FIFO_EN == 1
 			return &g_tUart2;
 		#else
-			return;
+			return 0;
 		#endif
 	}
 	else if (_ucPort == COM3)
@@ -572,19 +572,19 @@ static void InitHardUart(void)
 #endif
 
 #if UART3_FIFO_EN == 1			/* 串口3 TX = PB10   RX = PB11 */
+#if 0 
+//	/* 配置 PB2为推挽输出，用于切换 RS485芯片的收发状态 */
+//	{
+//		RCC_AHB1PeriphClockCmd(RCC_RS485_TXEN, ENABLE);
 
-	/* 配置 PB2为推挽输出，用于切换 RS485芯片的收发状态 */
-	{
-		RCC_AHB1PeriphClockCmd(RCC_RS485_TXEN, ENABLE);
+//		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;		/* 设为输出口 */
+//		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
+//		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	/* 上下拉电阻不使能 */
+//		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	/* IO口最大速度 */
 
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;		/* 设为输出口 */
-		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
-		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	/* 上下拉电阻不使能 */
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	/* IO口最大速度 */
-
-		GPIO_InitStructure.GPIO_Pin = PIN_RS485_TXEN;
-		GPIO_Init(PORT_RS485_TXEN, &GPIO_InitStructure);
-	}
+//		GPIO_InitStructure.GPIO_Pin = PIN_RS485_TXEN;
+//		GPIO_Init(PORT_RS485_TXEN, &GPIO_InitStructure);
+//	}
 
 	/* 打开 GPIO 时钟 */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
@@ -611,7 +611,33 @@ static void InitHardUart(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
+#else
+	/* 打开 GPIO 时钟 */
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 
+	/* 打开 UART 时钟 */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+
+	/* 将 PD8 映射为 USART3_TX */
+	GPIO_PinAFConfig(GPIOD, GPIO_PinSource8, GPIO_AF_USART3);
+
+	/* 将 PD9 映射为 USART3_RX */
+	GPIO_PinAFConfig(GPIOD, GPIO_PinSource9, GPIO_AF_USART3);
+
+	/* 配置 USART Tx 为复用功能 */
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;	/* 输出类型为推挽 */
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;	/* 内部上拉电阻使能 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;	/* 复用模式 */
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+	/* 配置 USART Rx 为复用功能 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+#endif
 	/* 第2步： 配置串口硬件参数 */
 	USART_InitStructure.USART_BaudRate = UART3_BAUD;	/* 波特率 */
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -893,9 +919,9 @@ static void UartSend(UART_T *_pUart, uint8_t *_ucaBuf, uint16_t _usLen)
 		{
 			uint16_t usRead;
 
-			DISABLE_INT();
+			OSIntEnter();
 			usRead = _pUart->usTxRead;
-			ENABLE_INT();
+			OSIntExit();
 
 			if (++usRead >= _pUart->usTxBufSize)
 			{
@@ -912,9 +938,9 @@ static void UartSend(UART_T *_pUart, uint8_t *_ucaBuf, uint16_t _usLen)
 		{
 			uint16_t usCount;
 
-			DISABLE_INT();
+			OSIntEnter();
 			usCount = _pUart->usTxCount;
-			ENABLE_INT();
+			OSIntExit();
 
 			if (usCount < _pUart->usTxBufSize)
 			{
@@ -926,13 +952,13 @@ static void UartSend(UART_T *_pUart, uint8_t *_ucaBuf, uint16_t _usLen)
 		/* 将新数据填入发送缓冲区 */
 		_pUart->pTxBuf[_pUart->usTxWrite] = _ucaBuf[i];
 
-		DISABLE_INT();
+		OSIntEnter();
 		if (++_pUart->usTxWrite >= _pUart->usTxBufSize)
 		{
 			_pUart->usTxWrite = 0;
 		}
 		_pUart->usTxCount++;
-		ENABLE_INT();
+		OSIntExit();
 	}
 
 	USART_ITConfig(_pUart->uart, USART_IT_TXE, ENABLE);
@@ -952,9 +978,9 @@ static uint8_t UartGetChar(UART_T *_pUart, uint8_t *_pByte)
 	uint16_t usCount;
 
 	/* usRxWrite 变量在中断函数中被改写，主程序读取该变量时，必须进行临界区保护 */
-	DISABLE_INT();
+	OSIntEnter();
 	usCount = _pUart->usRxCount;
-	ENABLE_INT();
+	OSIntExit();
 
 	/* 如果读和写索引相同，则返回0 */
 	//if (_pUart->usRxRead == usRxWrite)
@@ -967,13 +993,13 @@ static uint8_t UartGetChar(UART_T *_pUart, uint8_t *_pByte)
 		*_pByte = _pUart->pRxBuf[_pUart->usRxRead];		/* 从串口接收FIFO取1个数据 */
 
 		/* 改写FIFO读索引 */
-		DISABLE_INT();
+		OSIntEnter();
 		if (++_pUart->usRxRead >= _pUart->usRxBufSize)
 		{
 			_pUart->usRxRead = 0;
 		}
 		_pUart->usRxCount--;
-		ENABLE_INT();
+		OSIntExit();
 		return 1;
 	}
 }
@@ -1120,23 +1146,23 @@ void USART6_IRQHandler(void)
 /*
 *********************************************************************************************************
 *	函 数 名: fputc
-*	功能说明: 重定义putc函数，这样可以使用printf函数从串口1打印输出
+*	功能说明: 重定义putc函数，这样可以使用printf函数从串口3打印输出
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
 int fputc(int ch, FILE *f)
 {
-#if 1	/* 将需要printf的字符通过串口中断FIFO发送出去，printf函数会立即返回 */
-	comSendChar(COM1, ch);
+#if 0	/* 将需要printf的字符通过串口中断FIFO发送出去，printf函数会立即返回 */
+	comSendChar(COM3, ch);
 
 	return ch;
 #else	/* 采用阻塞方式发送每个字符,等待数据发送完毕 */
-	/* 写一个字节到USART1 */
-	USART_SendData(USART1, (uint8_t) ch);
+	/* 写一个字节到USART3 */
+	USART_SendData(USART3, (uint8_t) ch);
 
 	/* 等待发送结束 */
-	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+	while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
 	{}
 
 	return ch;
@@ -1146,7 +1172,7 @@ int fputc(int ch, FILE *f)
 /*
 *********************************************************************************************************
 *	函 数 名: fgetc
-*	功能说明: 重定义getc函数，这样可以使用getchar函数从串口1输入数据
+*	功能说明: 重定义getc函数，这样可以使用getchar函数从串口3输入数据
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
@@ -1154,17 +1180,17 @@ int fputc(int ch, FILE *f)
 int fgetc(FILE *f)
 {
 
-#if 1	/* 从串口接收FIFO中取1个数据, 只有取到数据才返回 */
+#if 0	/* 从串口接收FIFO中取1个数据, 只有取到数据才返回 */
 	uint8_t ucData;
 
-	while(comGetChar(COM1, &ucData) == 0);
+	while(comGetChar(COM3, &ucData) == 0);
 
 	return ucData;
 #else
-	/* 等待串口1输入数据 */
-	while (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET);
+	/* 等待串口3输入数据 */
+	while (USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == RESET);
 
-	return (int)USART_ReceiveData(USART1);
+	return (int)USART_ReceiveData(USART3);
 #endif
 }
 

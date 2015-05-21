@@ -92,7 +92,14 @@ typedef struct{
 void eps_enter_normal(void);
 void eps_enter_safe(void);
 void eps_entern_critical(void);
-void eps_allinoff(void);
+void eps_allin_off(void);
+void eps_allin_on(void);
+void bat_heater_on(void);
+void bat_heater_off(void);
+
+void eps_data_Init(void);
+void eps_data_handling(void);
+void bat_data_processing(void);
 
 #endif
 

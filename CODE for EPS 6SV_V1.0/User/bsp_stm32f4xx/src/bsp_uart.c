@@ -18,7 +18,23 @@
 *********************************************************************************************************
 */
 #include "stm32f4xx.h"
+#include <stdio.h>
+
+#include "includes.h"
+#include <os_cpu.h>
 void NVIC_UART3_Config(void);
+
+
+void USART3_IRQHandler(void)
+{
+	OSIntEnter();
+//	if(USART_GetITStatus(USART3, USART_IT_RXNE)!=RESET)
+//	{
+//		msg[RxCounter++]=USART_ReceiveData(USART1);
+//	
+//	}
+	OSIntExit();
+}
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitUart
@@ -77,7 +93,7 @@ void bsp_InitUart(void)
 	/* CPU的小缺陷：串口配置好，如果直接Send，则第1个字节发送不出去
 		如下语句解决第1个字节无法正确发送出去的问题 */
 	USART_ClearFlag(USART1, USART_FLAG_TC);     /* 清发送完成标志，Transmission Complete flag */
-NVIC_UART3_Config();	
+	NVIC_UART3_Config();	
 }
 void NVIC_UART3_Config(void)
 {
@@ -90,4 +106,39 @@ void NVIC_UART3_Config(void)
   NVIC_Init(&NVIC_InitStructure); 
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: fputc
+*	功能说明: 重定义putc函数，这样可以使用printf函数从串口1打印输出
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+int fputc(int ch, FILE *f)
+{
+	/* 写一个字节到USART3 */
+	USART_SendData(USART3, (uint8_t) ch);
+
+	/* 等待发送结束 */
+	while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
+	{}
+
+	return ch;
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: fgetc
+*	功能说明: 重定义getc函数，这样可以使用scanff函数从串口1输入数据
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+int fgetc(FILE *f)
+{
+	/* 等待串口1输入数据 */
+	while (USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == RESET);
+
+	return (int)USART_ReceiveData(USART3);
+}
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

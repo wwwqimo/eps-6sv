@@ -8,8 +8,6 @@ eps_ppt_t eps_ppt;
 char * bat_status_char[]={"bat full charged","bat normal voltage","bat enter safe mode",
 													"bat enter critical mode","bat hard off"};	
 
-static void eps_data_Init(void);
-
 													
 void eps_enter_normal(void)
 {
@@ -40,8 +38,9 @@ void bat_heater_off(void)
 
 }
 
-static void eps_data_Init(void)
+void eps_data_Init(void)
 {
+	//init eps_bat structure
 	memset(&eps_bat,0,sizeof(eps_bat_t));
 	eps_bat.bat_heater_mode = 0;
 	eps_bat.bat_fullcap = 38480000;
@@ -49,8 +48,15 @@ static void eps_data_Init(void)
 	eps_bat.bat_total_percent = 100;
 	eps_bat.bat_state =BAT_NORMAL;
 	eps_bat.bat_status = bat_status_char[1];
+	//init eps_ppt structure
 	memset(&eps_ppt,0,sizeof(eps_ppt));
 	
+	//
+	
+}
+void eps_data_handling(void)
+{
+	bat_data_processing();
 }
 void bat_data_processing(void)
 {
