@@ -10,10 +10,6 @@
 
 extern __IO uint16_t uhADCConvertedValue[NumofConv];
 
-#define ADC_REF          2500   //ADC参考电压
-#define ADC_FullScale    4095  //ADC量程
-#define AD7490_REF       2500   //AD7490 参考电压
-#define AD7490_FullScale 4095  //ad7490量程
 
 #define size_filter 5    //定义滑动滤波缓存区大小
 //adc map,对应eps_hk_adc_t 结构体中数据在读取到的原值中的位置，
@@ -28,13 +24,13 @@ const uint8_t adc_map[]={0,2,4,5,6,7, /*c_s[6]*/
 //定义adc数据比例，电压量为分压比，典型值49.9k/10k,转换关系为 V_real = V*Vdiv
 //电流量为1/(R*G),典型值为R=0.051欧，G=25V/V;总线电流采样电阻R=0.051/2，转换关系为C=V*(1/R*G)
 //温度量为V = 0.75+0.01*(T-25);转换关系为T = (V-0.75)/0.01+25
-float  adc_div[]={0.7843,0.7843,0.7843,0.7843,0.7843,0.7843,
+const float  adc_div[]={0.7843,0.7843,0.7843,0.7843,0.7843,0.7843,
 									5.99,5.99,5.99,5.99,5.99,5.99,
 									1.5686,1.5686,4.30,5.99,5.99,
 									0.7843,0.7843,0.7843,0.7843,0.7843,
 									0.7843,0.7843,0.7843,0.7843,
 									1,1,1,1,1,1};
-uint16_t sf_buffer[size_filter][hk_adc_num];//定义滑动滤波缓存区
+static uint16_t sf_buffer[size_filter][hk_adc_num];//定义滑动滤波缓存区
 //adc 数据存放数组，已经经过滤波处理
 uint16_t adc_data[hk_adc_num];							
 //定义adc数据结构体
@@ -66,7 +62,7 @@ void ADCSample(void)
 		//将数据填入机构提，并转换为真实值
 		peps_hk_adc = adc_to_real(pdata,peps_hk_adc);
 		#if USER_DEBUG_EN > 0
-		eps_print(print_adc);
+//		eps_print(print_adc);
     #endif
 		eps_data_handling();
 		OSTimeDlyHMSM(0, 0, 0, 1000);	
@@ -81,7 +77,7 @@ void ADCSample(void)
 ** 电流量单位 ma
 ** 温度量单位 degc
 */
-eps_hk_adc_t * adc_to_real(uint16_t *adc_uint,eps_hk_adc_t *adc_dest)
+static eps_hk_adc_t * adc_to_real(uint16_t *adc_uint,eps_hk_adc_t *adc_dest)
 {
 	uint8_t i;
 	uint16_t * adc_dest1;
@@ -105,7 +101,7 @@ eps_hk_adc_t * adc_to_real(uint16_t *adc_uint,eps_hk_adc_t *adc_dest)
 ** 对数据进行滑动滤波处理，并返回
 **adc_dest 数据接收数组指针
 */
-uint16_t * adc_acquisition_processing(uint16_t *adc_dest)
+static uint16_t * adc_acquisition_processing(uint16_t *adc_dest)
 {
 	uint16_t *ptr_ad7490;
 	uint16_t i;
@@ -142,7 +138,7 @@ void slidingfilter_test(void)
 **
 ******************************************************************************************************************
 */
-uint16_t  SlidingFilter(uint16_t adc_value,uint16_t adc_count)
+static uint16_t  SlidingFilter(uint16_t adc_value,uint16_t adc_count)
 {
 	static uint16_t ptr[hk_adc_num] = {0};
 	uint16_t k;
@@ -157,8 +153,6 @@ uint16_t  SlidingFilter(uint16_t adc_value,uint16_t adc_count)
 		sum += sf_buffer[k][adc_count];
 	}
 	return (uint16_t)sum/size_filter;
-
-	
 }
 
 /********************************************************************************************************************/

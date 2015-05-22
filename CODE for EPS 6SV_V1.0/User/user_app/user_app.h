@@ -3,6 +3,7 @@
 
 
 #include "bsp.h"
+
 #include "user_bsp.h"
 #include "user_print.h"
 
@@ -10,12 +11,12 @@
 
 #include "app_adc.h"
 #include "app_mppt.h"
+#include <stdio.h>
+#include <string.h>
 
 
 
-
-
-
+void user_app_Init(void);
 #endif
 /*********************************************************************************************************************************/
 

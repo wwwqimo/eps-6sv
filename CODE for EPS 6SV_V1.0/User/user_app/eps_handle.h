@@ -36,7 +36,9 @@
 
 
 
-
+/*battery
+********************************************************************************************
+*/
 
 //µç³ØµçÑ¹×´Ì¬
 typedef enum{
@@ -77,18 +79,23 @@ typedef struct{
 } eps_bat_t;
 
 
+/*
+*********************************************************************************************
+*/
+typedef struct eps_hk_state_s{
+	uint8_t sv_state[6];    //eps solar input state
+	uint8_t conv_state[2];  //eps regulator converter state
+	uint8_t reg_state[5];   //eps regulate ouputs states
+	uint8_t ureg_state[4];  //eps unregulate outputs state
+	uint16_t out_fault;     //eps output faults count number 
+	uint16_t reg_fault[5];  //eps every regulate output fault count number
+	uint16_t ureg_fault[4]; //eps every unregulate output fault count number
+	uint16_t eps_power_mode;        //eps power select
+} eps_hk_state_t;
 
-
-
-
-typedef struct{
-	uint8_t ppt_mode;               //mode for ppt[0 = fixed, 1 = auto]
-	uint16_t ppt_volt;              //fixed ppt point for converters [mv]
-} eps_ppt_t;
-
-
-
-
+/*
+*********************************************************************************************
+*/
 void eps_enter_normal(void);
 void eps_enter_safe(void);
 void eps_entern_critical(void);

@@ -19,10 +19,13 @@ typedef enum{
 	print_out,
 	print_mcu,
 	print_bus,
-	print_adc
+	print_adc,
+	
+	print_help
 } print_eps_t;
 
-
+void UartReciveNew(void);
+void printf_bat(void);
 void eps_print(print_eps_t print_select);
 #endif
 /**********************************************************************************************/

@@ -147,7 +147,7 @@ static void AppTaskStart(void *p_arg)
   CPU_Init();          
 	BSP_Tick_Init();
 	
-	
+	user_app_Init();
 //  Mem_Init();          
 
 	/* 检测CPU能力，统计模块初始化。该函数将检测最低CPU占有率 */

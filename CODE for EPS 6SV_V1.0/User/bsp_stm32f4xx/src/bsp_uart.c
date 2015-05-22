@@ -22,18 +22,104 @@
 
 #include "includes.h"
 #include <os_cpu.h>
-void NVIC_UART3_Config(void);
+extern void UartReciveNew(void);
+//declaration uart_fifo variable;
+uart_fifo_t uart_fifo;
+//declaration uart_buffer[] array variable
+uint8_t uart_buffer[UART_BUF_SIZE];
 
+static void NVIC_UART3_Config(void);
+//uart buffer initialize
+void uart_fifo_Init(uart_fifo_t *uart_fifo,uint16_t size,uint8_t * buf)
+{
+	uart_fifo->buf = buf;
+	uart_fifo->size = size;
+	uart_fifo->flag = 0;
+	uart_fifo->free = size;
+	uart_fifo->getP = 0;
+	uart_fifo->putP = 0;
+	uart_fifo->ReciveNew = UartReciveNew;
+}
+//buffer add a data
+int32_t uart_fifo_put(uart_fifo_t *uart_fifo,uint8_t data)
+{
+	if(uart_fifo->free == 0)
+	{
+		uart_fifo->flag |= UART_OVERFLOW;
+		return (-1);
+	}
+	uart_fifo->buf[uart_fifo->putP] = data;
+	uart_fifo->putP++;
+	//cycle buffer 
+	if(uart_fifo->putP == uart_fifo->size)
+	{
+		uart_fifo->putP = 0;
+	}
+	uart_fifo->free--;
+	return 0;
+}
+//get a data from buffer
+int32_t uart_fifo_get(uart_fifo_t *uart_fifo)
+{
+	int32_t data;
+	if(uart_fifo->free == uart_fifo->size)
+	{
+		return (-1);
+	}
+	data = uart_fifo->buf[uart_fifo->getP];
+	uart_fifo->getP++;
+	//cycyle buffer
+	if(uart_fifo->getP == uart_fifo->size)
+	{
+		uart_fifo->getP = 0;
+	}
+	uart_fifo->free++;
+	return data;
+}
 
+// buffer used size
+int32_t uart_fifo_used(uart_fifo_t *uart_fifo)
+{
+
+	return uart_fifo->size - uart_fifo->free;
+}
+//buffer free size
+int32_t uart_fifo_free(uart_fifo_t *uart_fifo)
+{
+	return uart_fifo->free;
+}
+	//clear the uart buffer;
+void uart_fifo_clear(uart_fifo_t *uart_fifo)
+{
+	uart_fifo->free = UART_BUF_SIZE;
+	uart_fifo->getP = 0;
+	uart_fifo->putP = 0;
+}
+//uart interruot service 
 void USART3_IRQHandler(void)
 {
-	OSIntEnter();
-//	if(USART_GetITStatus(USART3, USART_IT_RXNE)!=RESET)
-//	{
-//		msg[RxCounter++]=USART_ReceiveData(USART1);
-//	
-//	}
-	OSIntExit();
+	uint16_t rxdata;
+	#if OS_CRITICAL_METHOD == 3u                               /* Allocate storage for CPU status register */
+    OS_CPU_SR  cpu_sr = 0u;
+	#endif
+	OS_ENTER_CRITICAL();
+	if(USART_GetITStatus(USART3, USART_IT_RXNE)!=RESET)
+	{
+		rxdata = USART_ReceiveData(USART3);
+//		printf("uart get message %c", (unsigned char)rxdata);
+		uart_fifo_put(&uart_fifo, rxdata);
+
+		if((char)rxdata == '\r'||(char)rxdata == '\n')
+		{
+			printf("\r\n");
+			uart_fifo.ReciveNew();
+		}
+		else
+		{
+			printf("%c",(char)rxdata);
+		}
+	}
+	 OS_EXIT_CRITICAL();
 }
 /*
 *********************************************************************************************************
@@ -47,7 +133,8 @@ void bsp_InitUart(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
-	
+	//initialize uart_fifo struct
+	uart_fifo_Init(&uart_fifo,UART_BUF_SIZE,&uart_buffer[0]);
 	/* ´®¿Ú3 TX = PD8   RX = PD9 */
 
 	/* µÚ1²½£º ÅäÖÃGPIO */

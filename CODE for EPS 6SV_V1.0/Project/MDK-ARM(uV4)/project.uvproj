@@ -475,6 +475,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
             </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1328,6 +1333,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
             </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2180,6 +2190,11 @@
               <FileName>eps_handle.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
             </File>
           </Files>
         </Group>

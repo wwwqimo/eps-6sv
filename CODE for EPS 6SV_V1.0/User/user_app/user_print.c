@@ -8,7 +8,116 @@ extern eps_hk_adc_t eps_adc_data;
 extern eps_bat_t eps_bat;	
 extern eps_ppt_t eps_ppt;
 
+extern uart_fifo_t uart_fifo;
+static char *pcmdsub[]={"eps       ",
+												"sv        ",
+												"bat       ",
+												"temp      ",
+												"out       ",
+												"mcu       ",
+												"bus       ",
+												"adc       ",
+												"help      "};
 
+void UartReciveNew(void)
+{
+	uint32_t i,ptr = 0;
+	uint32_t cmdsize;
+	int32_t data ;
+	uint8_t flag = 0; //flag = :mean find "eps";flag = 2:mean find subcmd
+	char cmdmain[3];
+	char cmdsub[11] = {'\0'};
+	char cmdpara[5];
+	//get the size of the buffer used
+	cmdsize = uart_fifo_used(&uart_fifo);
+	//get a data from the uart buffer  
+	data = uart_fifo_get(&uart_fifo);
+	//check if the uart buffer overflow
+	if(data<0)
+	{
+		printf("uart buffer overflow\r\n");
+		return;
+	}
+	
+	while(((char)data =='e'||(char)data == 'E')&&flag == 0)
+	{
+		data = (char)uart_fifo_get(&uart_fifo);
+		if((char)data == 'p'||(char)data == 'P')
+		{
+			data = (char)uart_fifo_get(&uart_fifo);
+			if((char)data == 's'||(char)data == 'S')
+			{
+				data = uart_fifo_get(&uart_fifo);
+				if(data == 0x20)
+				{
+					flag = 1;//find "eps"
+				}
+				
+			}
+		}
+	}
+
+	
+	if(flag == 1)
+	{
+//		printf("eps ");//test
+		do{
+			data = uart_fifo_get(&uart_fifo);
+//			printf("%c",(char)data);//test
+			cmdsub[ptr++] = (char)data;
+			if((char)data == '\r' || (char)data == '\n')
+			{
+				flag = 2;
+				break;
+			}				
+			if (ptr > 10)
+			{
+				flag = 0;
+				break;
+			}
+		}while(1);
+		if(flag == 2)
+		{
+			for (i=(ptr-1);i<10;i++)
+			{
+				cmdsub[i] = 0x20;//fill the remained array units with space
+			}
+
+			for(i=0;i<sizeof(pcmdsub)/sizeof(char *);i++)
+			{
+				if(strcmp(pcmdsub[i],cmdsub) == 0)
+				{
+					eps_print((print_eps_t)i);
+				}
+			}
+		}
+		
+		
+	}
+	if(flag < 2)
+	{
+		eps_print(print_help);
+	}
+	else if(flag == 2)
+	{
+	
+	}
+	uart_fifo_clear(&uart_fifo);
+}
+void printf_help(void)
+{
+	printf("|****eps command****brief*****************************************|\r\n");
+	printf("|    eps eps        call eps main state\r\n");
+	printf("|    eps sv         call sv state\r\n");
+	printf("|    eps bat        call bat state\r\n");
+	printf("|    eps temp       call temptures state\r\n");
+	printf("|    eps out        call outputs state\r\n");
+	printf("|    eps mcu        call mcu state\r\n");
+	printf("|    eps bus        call bus state\r\n");
+	printf("|    eps adc        call all adc datas\r\n");
+	printf("|    eps help       call eps help instructions\r\n");
+	printf("|****************************************************************|\r\n");
+}
 void printf_eps(void)
 {
 	
@@ -20,32 +129,43 @@ void printf_sv(void)
 
 void printf_bat(void)
 {
-	printf("|****eps battery all states***********************************|");
-	printf("| eps bat status :%s",eps_bat.bat_status);
-	printf("| eps full capacity: %4.2fWHr",(float)eps_bat.bat_fullcap/1000000);
-	printf("| eps current capcity: %3d%%",eps_bat.bat_total_percent);
-	printf("| eps current power remained: %3d%%",eps_bat.bat_percent);
+	printf("|****eps battery all states***********************************|\r\n");
+	printf("| eps bat status :                 %s\r\n",eps_bat.bat_status);
+	printf("| eps bat voltage :                %4dmV\r\n",eps_adc_data.v_bus);
+	printf("| eps full capacity:               %4.2fWHr\r\n",((float)(eps_bat.bat_fullcap)/1000000));
+	printf("| eps current capcity:             %3d%%\r\n",eps_bat.bat_total_percent);
+	printf("| eps current power remained:      %3d%%\r\n",eps_bat.bat_percent);
 	if(eps_bat.bat_heater_mode)
 	{
-		printf("| eps heater mode: auto");
+		printf("| eps heater mode:                auto\r\n");
 	}
 	else
 	{
-		printf("| eps heater mode: manual");
+		printf("| eps heater mode:                manual\r\n");
 	}
 	if(eps_bat.bat_heater_status == YES)
 	{
-		printf("| eps heater status: battery heating");
+		printf("| eps heater status:              battery heating\r\n");
 	}
 	else
 	{
-		printf("| eps heater status: battery  not heating");
+		printf("| eps heater status:              battery  not heating\r\n");
 	}
 	
-	printf("| eps bat off count number: %4d ",eps_bat.bat_off_count);
+	printf("| eps bat off count number:       %4d \r\n",eps_bat.bat_off_count);
+	printf("|*************************************************************|\r\n");
 }
 void printf_temp(void)
-{}
+{
+	printf("|****tempture***********************************************************|\r\n");
+	printf("temp0           %2d degc  on the top left corner of eps,top side\r\n",eps_adc_data.temp_eps[0]);
+	printf("temp1           %2d degc  on the lower left corner of eps,top side\r\n",eps_adc_data.temp_eps[1]);
+	printf("temp2           %2d degc  on the lower right corner of eps,bottom side\r\n",eps_adc_data.temp_eps[2]);
+	printf("temp3           %2d degc  on the middle up part of eps,top side\r\n",eps_adc_data.temp_eps[3]);
+	printf("bat_temp0       %2d degc  on the lower left corner of battery,top side\r\n",eps_adc_data.temp_bat[0]);
+	printf("bat_temp1       %2d degc  on the lower right corner of battery,top side\r\n",eps_adc_data.temp_bat[1]);
+	printf("|***********************************************************************|\r\n");
+}
 	
 void printf_out(void)
 {
@@ -57,7 +177,7 @@ void printf_mcu(void)
 }
 void printf_bus(void)
 {
-
+	
 }
 
 void printf_adc(void)
@@ -109,6 +229,9 @@ void eps_print(print_eps_t print_select)
 			break;
 		case print_adc:
 			printf_adc();
+			break;
+		case print_help:
+			printf_help();
 			break;
 		default:
 			break;
