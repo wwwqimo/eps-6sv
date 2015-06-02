@@ -56,6 +56,7 @@ static void ADC_DMA_Init(void)
 static void ADC_GPIO_Init(void)
 {
 	GPIO_InitTypeDef      GPIO_InitStructure;
+	
 	/*
 	**ADC1 chan 0 chan 1 chan 2 chan 3 chan 4 chan 5 chan 6 chan 7 
 	**     PA0    PA1    PA2    PA3    PA4    PA5    PA6    PA7
@@ -103,7 +104,7 @@ void bsp_InitADC(void)
 {
 	ADC_InitTypeDef       ADC_InitStructure;
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;
-
+	ADC_DeInit();
 	/* 使能外设时钟 */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
     

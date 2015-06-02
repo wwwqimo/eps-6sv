@@ -19,7 +19,7 @@
 
 #if MPPT_INC_CONDC_EN > 0u
 //定义mppt结构体
-typedef struct mppt_incond_s{
+typedef struct{
 	double v_cur,c_cur; //当前电压电流值
 	double v_pre,c_pre;//上一次电压电流值
 	double v_diff,c_diff;//电压电流差

@@ -7,7 +7,7 @@
 void user_bsp_Init(void)
 {
 	bsp_MPPT_Init();
-	bsp_IncPID_Init();
+//	bsp_IncPID_Init();
 	bsp_AD7490_Init();
 	
 	

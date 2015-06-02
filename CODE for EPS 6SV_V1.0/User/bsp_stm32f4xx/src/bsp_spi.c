@@ -15,6 +15,7 @@ void bsp_InitSPI(void)
 {
 		GPIO_InitTypeDef GPIO_InitStructure;
 		SPI_InitTypeDef  SPI_InitStructure;
+	SPI_I2S_DeInit(SPI1);
 	{
 		//SPI1  AD7490    SPI1_SCK--PB3;SPI1_MISO--PB4;SPI1_MOSI--PB5;SPI1_EN1--PB6
 		/* Ê¹ÄÜGPIO Ê±ÖÓ */

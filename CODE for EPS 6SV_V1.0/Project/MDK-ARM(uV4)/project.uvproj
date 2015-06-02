@@ -54,7 +54,7 @@
           <ListingPath>.\Flash\List\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
-          <CreateBatchFile>0</CreateBatchFile>
+          <CreateBatchFile>1</CreateBatchFile>
           <BeforeCompile>
             <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
@@ -74,7 +74,7 @@
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>CopyHex_Flash.bat</UserProg1Name>
             <UserProg2Name></UserProg2Name>
@@ -345,7 +345,7 @@
           <Cads>
             <interw>0</interw>
             <Optim>1</Optim>
-            <oTime>0</oTime>
+            <oTime>1</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
             <Strict>0</Strict>
@@ -362,7 +362,7 @@
               <MiscControls>--diag_suppress=870</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx,ARM_MATH_CM4,__FPU_PRESENT=1,__FPU_USED=1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\User;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\..\User\bsp_stm32f4xx;..\..\User\bsp_stm32f4xx\inc;..\..\uCOS-II\uC-CPU;..\..\uCOS-II\uC-LIB;..\..\uCOS-II\uCOS-II\Source;..\..\uCOS-II\uC-CPU\ARM-Cortex-M4\RealView;..\..\uCOS-II\uC-LIB\Ports\ARM-Cortex-M4\RealView;..\..\uCOS-II\uCOS-II\Ports\ARM-Cortex-M4\Generic\RealView;..\..\User\user_app;..\..\User\user_app\userbsp;..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\DSP_Lib\Source\ControllerFunctions</IncludePath>
+              <IncludePath>..\..\User;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\..\User\bsp_stm32f4xx;..\..\User\bsp_stm32f4xx\inc;..\..\uCOS-II\uC-CPU;..\..\uCOS-II\uC-LIB;..\..\uCOS-II\uCOS-II\Source;..\..\uCOS-II\uC-CPU\ARM-Cortex-M4\RealView;..\..\uCOS-II\uC-LIB\Ports\ARM-Cortex-M4\RealView;..\..\uCOS-II\uCOS-II\Ports\ARM-Cortex-M4\Generic\RealView;..\..\User\user_app;..\..\User\user_app\userbsp;..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\DSP_Lib\Source\ControllerFunctions;..\..\Libraries\STM32F4xx_HAL_Driver\Inc;..\..\Libraries\STM32F4xx_HAL_Driver</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -456,6 +456,26 @@
               <FilePath>..\..\User\user_app\user_app.h</FilePath>
             </File>
             <File>
+              <FileName>user_print.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_print.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_iap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_iap.c</FilePath>
+            </File>
+            <File>
+              <FileName>eps_handle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
+            </File>
+            <File>
               <FileName>app_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_adc.c</FilePath>
@@ -464,21 +484,6 @@
               <FileName>app_mppt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_mppt.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_print.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_print.c</FilePath>
-            </File>
-            <File>
-              <FileName>eps_handle.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -636,19 +641,9 @@
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_exti.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f4xx_iwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_iwdg.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f4xx_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_wwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_crc.c</FileName>
@@ -669,11 +664,6 @@
               <FileName>stm32f4xx_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_adc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_dac.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_dac.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1314,6 +1304,26 @@
               <FilePath>..\..\User\user_app\user_app.h</FilePath>
             </File>
             <File>
+              <FileName>user_print.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_print.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_iap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_iap.c</FilePath>
+            </File>
+            <File>
+              <FileName>eps_handle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
+            </File>
+            <File>
               <FileName>app_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_adc.c</FilePath>
@@ -1322,21 +1332,6 @@
               <FileName>app_mppt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_mppt.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_print.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_print.c</FilePath>
-            </File>
-            <File>
-              <FileName>eps_handle.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1494,19 +1489,9 @@
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_exti.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f4xx_iwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_iwdg.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f4xx_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_wwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_crc.c</FileName>
@@ -1527,11 +1512,6 @@
               <FileName>stm32f4xx_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_adc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_dac.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_dac.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2172,6 +2152,26 @@
               <FilePath>..\..\User\user_app\user_app.h</FilePath>
             </File>
             <File>
+              <FileName>user_print.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_print.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_iap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\user_iap.c</FilePath>
+            </File>
+            <File>
+              <FileName>eps_handle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
+            </File>
+            <File>
               <FileName>app_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_adc.c</FilePath>
@@ -2180,21 +2180,6 @@
               <FileName>app_mppt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\app_mppt.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_print.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_print.c</FilePath>
-            </File>
-            <File>
-              <FileName>eps_handle.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\eps_handle.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\user_app\user_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2352,19 +2337,9 @@
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_exti.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f4xx_iwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_iwdg.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f4xx_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_wwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_crc.c</FileName>
@@ -2385,11 +2360,6 @@
               <FileName>stm32f4xx_adc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_adc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_dac.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_dac.c</FilePath>
             </File>
           </Files>
         </Group>

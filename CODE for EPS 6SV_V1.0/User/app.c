@@ -81,7 +81,19 @@ static void AppTaskLED(void *p_arg);
 OS_EVENT *AppUserIFMbox;
 OS_EVENT *COM1_Mbox;
 
-
+/**
+  * @brief  Inserts a delay time.
+  * @param  nCount: specifies the delay time length.
+  * @retval None
+  */
+void Delay(__IO uint32_t nCount)
+{
+  /* Decrement nCount value */
+  while (nCount != 0)
+  {
+    nCount--;
+  }
+}
 
 /*
 *******************************************************************************************************
@@ -95,9 +107,12 @@ int main(void)
 {
 	INT8U  err;
 
+	//Relocate the vector table at address 0x08004000,
+//	NVIC_SetVectorTable(NVIC_VectTab_FLASH,0X4000);
 	/* 初始化"uC/OS-II"内核 */
 	OSInit();
-  
+ 
+
 	/* 创建一个启动任务（也就是主任务）。启动任务会创建所有的应用程序任务 */
 	OSTaskCreateExt(AppTaskStart,	/* 启动任务函数指针 */
                     (void *)0,		/* 传递给任务的参数 */
@@ -125,7 +140,34 @@ int main(void)
 	/* 启动多任务系统，控制权交给uC/OS-II */
 	OSStart();
 }
-
+void GetSysClock_info(void)
+{
+	#if USER_DEBUG_EN >0u
+	RCC_ClocksTypeDef RCC_ClockFreq;
+	/*
+	*              - 0x00: HSI used as system clock
+  *              - 0x04: HSE used as system clock
+  *              - 0x08: PLL used as system clock
+	*/
+	switch(RCC_GetSYSCLKSource())
+	{
+		case 0x00: printf("The SYSCLOCK is HSI\r\n");
+			break;
+		case 0x04: printf("The SYSCLOCK is HSE\r\n");
+			break;
+		case 0x08: printf("The SYSCLOCK is PLL\r\n");
+			break;
+		default:
+			break;
+	}
+		
+	RCC_GetClocksFreq(&RCC_ClockFreq);
+	printf("The SYSCLK Frequency is %d\r\n",RCC_ClockFreq.SYSCLK_Frequency);
+	printf("The HCLK Frequency is %d\r\n",RCC_ClockFreq.HCLK_Frequency);
+	printf("The PCLK1 Frequency is %d\r\n",RCC_ClockFreq.PCLK1_Frequency);
+	printf("The PCLK2 Frequency is %d\r\n",RCC_ClockFreq.PCLK2_Frequency);
+	#endif
+}
 /*
 *********************************************************************************************************
 *	函 数 名: AppTaskStart
@@ -146,7 +188,7 @@ static void AppTaskStart(void *p_arg)
 	user_bsp_Init();
   CPU_Init();          
 	BSP_Tick_Init();
-	
+	GetSysClock_info();
 	user_app_Init();
 //  Mem_Init();          
 
@@ -189,7 +231,7 @@ static void AppTaskCom(void *p_arg)
 //		bsp_LedToggle(4);
 		OSTimeDlyHMSM(0, 0, 0, 100);	 						  	 	       											  
    } 
-	 						  	 	       											  
+				  	 	       											  
 }
 /*
 *********************************************************************************************************

@@ -57,8 +57,8 @@
 #define TIM_PWM3 3
 #define TIM_PWM4 4
 /*--初始PWM输出占空比为0-----------------------------------------------------------------------------------------------*/
-uint16_t TIM1_CCR_Val[4] = {0};//
-uint16_t TIM4_CCR_Val[4] = {0};//
+uint16_t TIM1_CCR_Val[4] = {100,100,100,100};//
+uint16_t TIM4_CCR_Val[4] = {100,100};//
 
 
 uint16_t PrescalerValue = 0;
@@ -70,6 +70,8 @@ static void TIM_GPIO_Config(void);
 void bsp_InitPWM(void)
 {
 	
+	TIM_DeInit(TIM1);
+	TIM_DeInit(TIM4);
  /* TIM Configuration */
   TIM_GPIO_Config();
 	TIM1_PWM_Config();
@@ -84,37 +86,35 @@ void bsp_InitPWM(void)
 *返回值：  none
 ****************************************************************************
 */
-void PWM_Updata(TIM_TypeDef * TIMx, uint16_t PWM1CCRVal,uint16_t PWM2CCRVal,uint16_t PWM3CCRVal,uint16_t PWM4CCRVal)
+uint8_t PWM_Updata(uint16_t PWM_CCRVal, uint8_t pwm_chan)
 {
-	TIM_OCInitTypeDef  TIM_OCInitStructure;
-
-	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-	
-	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	
-//	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = PWM2CCRVal;
-  TIM_OC2Init(TIMx, &TIM_OCInitStructure);
-//	TIM_OC2PreloadConfig(TIMx, TIM_OCPreload_Enable);
-	
-//	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = PWM3CCRVal;
-  TIM_OC3Init(TIMx, &TIM_OCInitStructure);
-//	TIM_OC3PreloadConfig(TIMx, TIM_OCPreload_Enable);
-	
-//	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = PWM4CCRVal;
-  TIM_OC4Init(TIMx, &TIM_OCInitStructure);
-//	TIM_OC4PreloadConfig(TIMx, TIM_OCPreload_Enable);
-
-
-	TIM_OCInitStructure.TIM_Pulse = PWM1CCRVal;
-  TIM_OC1Init(TIMx, &TIM_OCInitStructure);
-//	TIM_OC1PreloadConfig(TIMx, TIM_OCPreload_Enable);
-	
-//	TIM_ARRPreloadConfig(TIMx, ENABLE);
-//	TIM_Cmd(TIMx, ENABLE);
+	switch(pwm_chan)
+	{
+		case 0:
+			TIM_SetCompare1(TIM1,PWM_CCRVal);
+			break;
+		case 1:
+			TIM_SetCompare2(TIM1,PWM_CCRVal);
+			break;
+		case 2:
+			TIM_SetCompare3(TIM1,PWM_CCRVal);
+			break;
+		case 3:
+			TIM_SetCompare4(TIM1,PWM_CCRVal);
+			break;
+		case 4:
+			TIM_SetCompare1(TIM4,PWM_CCRVal);
+			break;
+		case 5:
+			TIM_SetCompare2(TIM4,PWM_CCRVal);
+			break;
+		default:
+			break;
+		
+	}
+	return pwm_chan;
 }
+
 
 /*
 **************************************************************************************************
@@ -137,9 +137,9 @@ static void TIM1_PWM_Config(void)
 //      PCLK1 = HCLK / 4 
 //      => TIM1CLK = HCLK / 2 = SystemCoreClock /2
 //          
-//    To get TIM1 counter clock at 64 MHz, the prescaler is computed as follows:
+//    To get TIM1 counter clock at 84 MHz, the prescaler is computed as follows:
 //       Prescaler = (TIM1CLK / TIM1 counter clock) - 1
-//       Prescaler = ((SystemCoreClock /2) /64 MHz) - 1
+//       Prescaler = ((SystemCoreClock /2) /84 MHz) - 1
 //                                              
 //    To get TIM1 output clock at 82 KHz, the period (ARR)) is computed as follows:
 //       ARR = (TIM1 counter clock / TIM1 output clock) - 1
@@ -158,51 +158,53 @@ static void TIM1_PWM_Config(void)
 //  ----------------------------------------------------------------------- */  
 
 //  /* Compute the prescaler value */
-//	//82kHz
+//	//84kHz
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /* -----------------------------------------------------------------------
    
   ----------------------------------------------------------------------- */  
-
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
   /* Compute the prescaler value */
-  PrescalerValue = (uint16_t) ((SystemCoreClock) / 64000000) - 1;
+  PrescalerValue = (uint16_t) ((SystemCoreClock) / 84000000) - 1;
 
   /* Time base configuration */
-  TIM_TimeBaseStructure.TIM_Period = 1023;
+  TIM_TimeBaseStructure.TIM_Period = 999;
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; //死去控制
   TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
 	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 
   TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;	
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;	
+ 	TIM_OCInitStructure.TIM_Pulse = TIM1_CCR_Val[0];
 	
-  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;//????,TIM_OCNPolarity_High?????
 	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
 	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCNIdleState_Reset;
-  
-
+	
+	TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR???????????
+	TIM_OC1Init(TIM1,&TIM_OCInitStructure);
+	
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_Pulse = TIM1_CCR_Val[1];
 	TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR???????????
 	TIM_OC2Init(TIM1,&TIM_OCInitStructure);
-
+	
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_Pulse = TIM1_CCR_Val[2];
 	TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR???????????
 	TIM_OC3Init(TIM1,&TIM_OCInitStructure);
-
+	
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_Pulse = TIM1_CCR_Val[3];
 	TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR???????????
 	TIM_OC4Init(TIM1,&TIM_OCInitStructure);
   
-	TIM_OCInitStructure.TIM_Pulse = TIM1_CCR_Val[0];
-	TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR???????????
-	TIM_OC1Init(TIM1,&TIM_OCInitStructure);
-	
   TIM_ARRPreloadConfig(TIM1, ENABLE); //ARR??????????,?????
 
 	TIM_Cmd(TIM1,ENABLE);
@@ -229,9 +231,9 @@ static void TIM4_PWM_Config(void)
 //      PCLK1 = HCLK / 4 
 //      => TIM4CLK = HCLK / 2 = SystemCoreClock /2
 //          
-//    To get TIM4 counter clock at 64 MHz, the prescaler is computed as follows:
+//    To get TIM4 counter clock at 84 MHz, the prescaler is computed as follows:
 //       Prescaler = (TIM4CLK / TIM4 counter clock) - 1
-//       Prescaler = ((SystemCoreClock /2) /64 MHz) - 1
+//       Prescaler = ((SystemCoreClock /2) /84 MHz) - 1
 //                                              
 //    To get TIM4 output clock at 82 KHz, the period (ARR)) is computed as follows:
 //       ARR = (TIM4 counter clock / TIM4 output clock) - 1
@@ -257,12 +259,12 @@ static void TIM4_PWM_Config(void)
   /* -----------------------------------------------------------------------
    
   ----------------------------------------------------------------------- */  
-
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
   /* Compute the prescaler value */
-  PrescalerValue = (uint16_t) ((SystemCoreClock /2) / 64000000) - 1;
+  PrescalerValue = (uint16_t) ((SystemCoreClock /2) / 84000000) - 1;
 
   /* Time base configuration */
-  TIM_TimeBaseStructure.TIM_Period = 1023;
+  TIM_TimeBaseStructure.TIM_Period = 999;
   TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;

@@ -8,9 +8,6 @@
 
 #include "bsp_ad7490.h"
 
-static uint16_t ad7490_DeInit(void);
-static void ad7490_cs(FunctionalState NewState){ spi_cs(SPI1,1,NewState);}
-
 uint16_t ad7490_data[16];
 uint16_t shadow_reg = 0xffff;
 /*

@@ -21,8 +21,18 @@ typedef enum{
 	print_bus,
 	print_adc,
 	
-	print_help
+	print_help,
+	iap,
+	IAP,
 } print_eps_t;
+
+typedef struct{
+	const char *name;
+	const char *help;
+	const char *usage;
+	void(*fun)(void);
+}printf_fun_t;
+
 
 void UartReciveNew(void);
 void printf_bat(void);

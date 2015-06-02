@@ -104,10 +104,9 @@ void NVIC_Configuration(void);
 void bsp_Init(void)
 {
 	NVIC_Configuration();  /* 中断优先级分组配置 */
-	
+	bsp_InitGPIO();
 	bsp_InitUart(); 	   /* 初始化串口 */
 	bsp_InitADC();       /*ADC初始化*/
-	bsp_InitGPIO();
 	bsp_InitPWM();
 	bsp_InitSPI();
 

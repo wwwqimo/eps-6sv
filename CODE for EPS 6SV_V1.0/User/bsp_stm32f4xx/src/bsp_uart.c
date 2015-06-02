@@ -58,6 +58,21 @@ int32_t uart_fifo_put(uart_fifo_t *uart_fifo,uint8_t data)
 	uart_fifo->free--;
 	return 0;
 }
+//delete one character
+int32_t uart_fifo_delete(uart_fifo_t *uart_fifo)
+{
+	if(uart_fifo->free == uart_fifo->size)
+	{
+		return (-1);
+	}
+	uart_fifo->putP--;
+	if(uart_fifo->putP == -1)
+	{
+		uart_fifo->putP = uart_fifo->size - 1;
+	}
+	uart_fifo->free++;
+	return 0;
+}
 //get a data from buffer
 int32_t uart_fifo_get(uart_fifo_t *uart_fifo)
 {
@@ -80,7 +95,6 @@ int32_t uart_fifo_get(uart_fifo_t *uart_fifo)
 // buffer used size
 int32_t uart_fifo_used(uart_fifo_t *uart_fifo)
 {
-
 	return uart_fifo->size - uart_fifo->free;
 }
 //buffer free size
@@ -108,15 +122,21 @@ void USART3_IRQHandler(void)
 		rxdata = USART_ReceiveData(USART3);
 //		printf("uart get message %c", (unsigned char)rxdata);
 		uart_fifo_put(&uart_fifo, rxdata);
+		if((char)rxdata == '\b')
+		{
+			uart_fifo_delete(&uart_fifo);//delete backspace
+			uart_fifo_delete(&uart_fifo);//delete previous character
+			printf("\b ");
+		}
 
 		if((char)rxdata == '\r'||(char)rxdata == '\n')
 		{
-			printf("\r\n");
-			uart_fifo.ReciveNew();
+			printf("\r\n");//print line break
+			uart_fifo.ReciveNew(); //call the callback function
 		}
 		else
 		{
-			printf("%c",(char)rxdata);
+			printf("%c",(char)rxdata);//print the enter character
 		}
 	}
 	 OS_EXIT_CRITICAL();
@@ -133,6 +153,7 @@ void bsp_InitUart(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
+	USART_DeInit(USART3);
 	//initialize uart_fifo struct
 	uart_fifo_Init(&uart_fifo,UART_BUF_SIZE,&uart_buffer[0]);
 	/* ´®¿Ú3 TX = PD8   RX = PD9 */

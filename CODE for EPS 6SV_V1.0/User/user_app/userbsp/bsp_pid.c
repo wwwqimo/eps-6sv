@@ -7,19 +7,10 @@
 */
 //******************includes******************************************************************
 #include "bsp_pid.h"
-#include "arm_math.h"
-#include "stm32f4xx.h"
 
-//pid 参数实例化
-arm_pid_instance_f32     PID_BUCK_SAS_V;
-//pid 数据实例化
-PID_Typedef              PID_BUCK_SAS_var_V;
 
-static void Init_IncPID(arm_pid_instance_f32 *S);
-static void Init_IncPIDvar(PID_Typedef *S);
 
-void Cal_IncPIDpara(arm_pid_instance_f32 *S, PID_Typedef *Svar);
-void Check_IncPIDout(PID_Typedef *Svar);
+
 /**
 *****************************************************************************************
 **函数名：  InitAll_IncPID
@@ -28,11 +19,15 @@ void Check_IncPIDout(PID_Typedef *Svar);
 **返回值：  none
 ****************************************************************************************
 **/
-void bsp_IncPID_Init(void)
-{
-	Init_IncPID( &PID_BUCK_SAS_V );
-	Init_IncPIDvar( &PID_BUCK_SAS_var_V );
-}
+//void bsp_IncPID_Init(void)
+//{
+//	uint8_t i;
+//	for(i=0;i<SV_NUM;i++)
+//	{
+//		Init_IncPID( &pid_ppt_para[i]);
+//		Init_IncPIDvar( &pid_ppt_var[i]);
+//	}
+//}
 
 /**
 *****************************************************************************************
@@ -42,7 +37,7 @@ void bsp_IncPID_Init(void)
 **返回值：  none
 ****************************************************************************************
 **/
-static void Init_IncPIDvar(PID_Typedef *Svar)
+void Init_IncPIDvar(PID_Typedef *Svar)
 {
 	memset(Svar,0,sizeof(PID_Typedef));
 
@@ -55,7 +50,7 @@ static void Init_IncPIDvar(PID_Typedef *Svar)
 **返回值：  none
 ****************************************************************************************
 **/
-static void Init_IncPID(arm_pid_instance_f32 *S)
+void Init_IncPID(arm_pid_instance_f32 *S)
 {
 	S->Kp = 0;
 	S->Ki = 0;
@@ -64,15 +59,39 @@ static void Init_IncPID(arm_pid_instance_f32 *S)
 }
 /**
 *******************************************************************************************
-**函数名：   Cal_IncPID
-**函数说明： 增量式PID计算
+**函数名：   Cal_IncPID_Minus
+**函数说明： 增量式PID计算,内部实现为减法
 **形参：     arm_pid_instance_f32 *S: PID控制参数结构体
 **           PID PID_ST *Svar       ：PID输入输出参数结构体
 **           float SampleValue      : 输入数据
 **返回值：   增量式PID输出值
 ****************************************************************************************
 **/
-float Cal_IncPID(arm_pid_instance_f32 *S, PID_Typedef *Svar,float SampleValue)
+float Cal_IncPID_Minus(arm_pid_instance_f32 *S, PID_Typedef *Svar,float SampleValue)
+{
+	S->state[0] = Svar->SetValue - SampleValue;//误差
+	S->state[1] += S->state[0];//误差和
+	S->state[2] = S->state[0] - Svar->LastErr;//误差微分
+	
+	Svar->LastErr = S->state[0];
+//	Cal_IncPIDpara(S, Svar);
+	
+  Svar->Output -= S->Kp * S->state[0] + S->Ki * S->state[1] + S->Kd * S->state[2];
+	
+	Check_IncPIDout(Svar);
+	return (uint16_t)Svar->Output;
+}
+/**
+*******************************************************************************************
+**函数名：   Cal_IncPID_Plus
+**函数说明： 增量式PID计算,内部实现为加法
+**形参：     arm_pid_instance_f32 *S: PID控制参数结构体
+**           PID PID_ST *Svar       ：PID输入输出参数结构体
+**           float SampleValue      : 输入数据
+**返回值：   增量式PID输出值
+****************************************************************************************
+**/
+float Cal_IncPID_Plus(arm_pid_instance_f32 *S, PID_Typedef *Svar,float SampleValue)
 {
 	S->state[0] = Svar->SetValue - SampleValue;//误差
 	S->state[1] += S->state[0];//误差和

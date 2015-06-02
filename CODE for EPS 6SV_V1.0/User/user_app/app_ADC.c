@@ -6,10 +6,11 @@
 *****************************************************************************************************************************
 */
 #include "app_adc.h"
-
+#include "includes.h"
 
 extern __IO uint16_t uhADCConvertedValue[NumofConv];
 
+extern eps_hk_adc_t eps_adc_data;
 
 #define size_filter 5    //定义滑动滤波缓存区大小
 //adc map,对应eps_hk_adc_t 结构体中数据在读取到的原值中的位置，
@@ -30,14 +31,18 @@ const float  adc_div[]={0.7843,0.7843,0.7843,0.7843,0.7843,0.7843,
 									0.7843,0.7843,0.7843,0.7843,0.7843,
 									0.7843,0.7843,0.7843,0.7843,
 									1,1,1,1,1,1};
+/*adc division compensation*/
+									
+const float adc_comp[]={-0.1,0,0,0,0,0,  /*c_s[0] +5.857%%*/
+												0.000,0,0,0,0,0,
+												0.028,0,0.01276,0,0,  /*c_sva +0.02,c_bus ,v_bus -1.276%*/
+												0,0,0,0,0,
+												0,0,0,0,0,0};
 static uint16_t sf_buffer[size_filter][hk_adc_num];//定义滑动滤波缓存区
 //adc 数据存放数组，已经经过滤波处理
 uint16_t adc_data[hk_adc_num];							
-//定义adc数据结构体
-eps_hk_adc_t eps_adc_data;	
-	
 
-							
+								
 void slidingfilter_test(void);
 												
 									
@@ -64,7 +69,7 @@ void ADCSample(void)
 		#if USER_DEBUG_EN > 0
 //		eps_print(print_adc);
     #endif
-		eps_data_handling();
+		user_data_handling();
 		OSTimeDlyHMSM(0, 0, 0, 1000);	
 	}
 }
@@ -86,7 +91,7 @@ static eps_hk_adc_t * adc_to_real(uint16_t *adc_uint,eps_hk_adc_t *adc_dest)
 	adc_dest2 = (int16_t*)(&(adc_dest->temp_eps[0]));
 	for(i=0;i<hk_adc_num-6;i++)
 	{
-		*(adc_dest1+i) = (uint16_t)(((float)(*(adc_uint+adc_map[i])))*adc_div[i]*ADC_REF/ADC_FullScale);
+		*(adc_dest1+i) = (uint16_t)(((float)(*(adc_uint+adc_map[i])))*(adc_div[i])*(1 + adc_comp[i])*ADC_REF/ADC_FullScale);
 	}
 	for(i=0;i<6;i++)
 	{
@@ -117,14 +122,14 @@ static uint16_t * adc_acquisition_processing(uint16_t *adc_dest)
 //滑动滤波测试程序
 void slidingfilter_test(void)
 {
-	uint16_t i,j;
+	uint16_t i;
 	uint16_t temp;
 	uint16_t tempadc[32];
-	for (j=0;j<32;j++)
+	for (i=0;i<32;i++)
 	{
-		tempadc[j] = j;
-		temp = SlidingFilter(tempadc[j],j);
-		printf("temp[%2d]=%4d\r\n",j,temp);
+		tempadc[i] = i;
+		temp = SlidingFilter(tempadc[i],i);
+		printf("temp[%2d]=%4d\r\n",i,temp);
 	}
 
 }
