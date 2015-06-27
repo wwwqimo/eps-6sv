@@ -19,9 +19,7 @@ uint16_t batSOCcurve[batCurve_num + 1][batResolution]={
 													100, 90,  80,  70,  60,  50,  40,  30,  20,  10,  5,   0};     /*电量百分比*/
 
 //regulated and unregulated outputs current limitation array
-uint16_t c_out_limit[REG_NUM+UREG_NUM]={1000,1000,1000,1000,1000,1000,1000,1000,1000};
-
-
+uint16_t c_out_limit[REG_NUM+UREG_NUM]={1000,1000,1000,1000,1000,1000,1000,1000,200};
 
 /**
 *@bref output channel switch
@@ -79,6 +77,48 @@ static void out_channel(uint8_t chan,FunctionalState NewState)
 			break;
 	}
 	out_fault_en(ENABLE);
+}
+/**
+*@bref     清楚选定通道的状态，设为初始值 off
+*@detail   本函数只是清楚状态变量，不改变端口状态
+*@detail   若要强制改变状态，请使用out_state_setforce()函数
+*@para     channel  :selected channel
+*@reteval  none*/
+void out_state_clear(uint8_t chan)
+{
+	if(chan < UREG_NUM+REG_NUM)
+	{
+		eps_state.out_state[chan] = OUTPUT_OFF;
+	}
+	else
+	{
+		printf("ERROR EPS: The selected channel is out of range!");
+	}
+}
+/**
+*@bref     强制设置选定通道为开或关
+*@detail
+*@para     chan ：selected channel ；NewState：通道新状态 
+*@reteval  none
+*/
+void out_state_setforce(uint8_t chan,FunctionalState NewState)
+{
+	if(chan < UREG_NUM+REG_NUM)
+	{
+		out_channel(chan, NewState);
+		if(NewState == ENABLE)
+		{
+			eps_state.out_state[chan] = OUTPUT_ON;
+		}
+		else
+		{
+			eps_state.out_state[chan] = OUTPUT_OFF;
+		}
+	}
+	else
+	{
+		printf("ERROR EPS: The selected channel is out of range!");
+	}
 }
 /**
 *@bref 电源板输出控制
@@ -263,7 +303,7 @@ void eps_data_Init(void)
 	eps_bat.bat_percent = 100;
 	eps_bat.bat_total_percent = 100;
 	eps_bat.bat_state = BAT_NORMAL;
-	
+	eps_bat.bat_status =  bat_status_char[BAT_NORMAL];
 }
 void eps_data_handling()
 {
@@ -298,7 +338,7 @@ static conv_state_t conv_state(uint16_t volt,uint16_t max,uint16_t min,uint16_t 
 	if(volt > errmax || volt < errmin) return CONV_ERR;
 	else if(volt > max) return CONV_OV;
 	else if(volt < min) return CONV_UV;
-	else return CONV_OFF;
+	else return CONV_ON;
 }
 /**
 *@bref 
@@ -357,11 +397,16 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 	// set turn on time and turn off time
 	// if the eps_state.out_Ton > ton ,then the function is not active	
 	// if the eps_state.out_Toff > toff ,then the function is not active	
-	uint16_t ton = 10;  //ticks
-	uint16_t toff = 10; //ticks
+	uint16_t ton = 10;  //ticks   1S
+	uint16_t toff = 10; //ticks   1S
+	uint16_t tout_hderr = 200; //ticks    20S
 	uint16_t c_off_offset=10;//mA
 	static output_state_t pre_state[REG_NUM + UREG_NUM] = {OUTPUT_OFF};//define output pre state enum variable
-
+	
+	ton = (1000/USER_TIME_DLY);
+	toff = (1000/USER_TIME_DLY);
+	tout_hderr = (20000/USER_TIME_DLY);
+	
 	for(i=0;i<(REG_NUM + UREG_NUM);i++)
 	{
 		switch (eps_state->out_state[i])
@@ -369,7 +414,7 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 			case OUTPUT_OFF:
 				if(eps_adc->c_out[i] > c_off_offset)
 				{
-					out_en(i,DISABLE);
+					out_channel(i,DISABLE);
 					eps_state->out_state[i] = OUTPUT_OFFERR;
 					pre_state[i] = OUTPUT_OFF;
 				}
@@ -377,6 +422,10 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 				{
 					break;
 				}
+			case OUTPUT_OFFERR:
+				eps_state->out_faults++;
+				eps_state->out_fault[i]++;
+				break;
 			case OUTPUT_ON:
 				if(eps_adc->c_out[i] > c_out_limit[i])
 				{
@@ -392,7 +441,7 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 				}
 //				break;
 			case OUTPUT_ERR:
-				out_en(i,DISABLE);
+				out_channel(i,DISABLE);
 				//表明是由于软件设置电流限制导致的error
 				if(pre_state[i] == OUTPUT_ON)//the error was caused by over current case
 				{
@@ -415,14 +464,16 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 				if((eps_state->out_Ton[i] > 0) && (eps_state->out_Ton[i] < ton+1)) 
 				{
 					eps_state->out_Ton[i]--;
+					eps_state->out_state[i] = OUTPUT_SFTRY;
 					//设定时间到，打开故障通道
-					if(eps_state->out_Ton == 0)
+					if(eps_state->out_Ton[i] == 0)
 					{
-						out_en(i,ENABLE);
-						eps_state->out_state[i] = OUTPUT_SFTRY;
+						out_channel(i,ENABLE);
+						
 						//设定故障通道关断时间，
 						eps_state->out_Toff[i] = toff;
 					}
+
 				}
 				//判断是否在Toff时间内
 				//在此时间内没有出现电流超出限制事件，则保持通道开通
@@ -431,56 +482,68 @@ static void output_data_processing(eps_hk_adc_t *eps_adc,eps_hk_state_t *eps_sta
 				if((eps_state->out_Toff[i] > 0) && (eps_state->out_Toff[i] < toff+1)) 
 				{
 					eps_state->out_Toff[i]--;
-					if(eps_adc->c_out[i] > c_out_limit[i])
+					if(eps_adc->c_out[i] > c_out_limit[i] && eps_state->out_Toff[i] < toff/2)
 					{
-						out_en(i,DISABLE);
+						out_channel(i,DISABLE);
 						eps_state->out_Toff[i] = 0;
 						eps_state->out_state[i] = OUTPUT_HDERR;
+						eps_state->out_Thderr[i] = tout_hderr;
 					}
 					else
 					{
 						if(eps_state->out_Toff[i] == 0) 
 						{
+							eps_state->out_Toff[i] = 0;
 							eps_state->out_state[i] = OUTPUT_TRYOK;
+
 						}
 					}
 				}
-//				break;
+				break;
 			case OUTPUT_HDTRY:
 				//首次进入HRTRY模式，进行设定
 				if(pre_state[i] != OUTPUT_ERR)
 				{ 
 					//打开故障通道，设定一定时间
 					//在规定时间内跳出故障模式则表明通道正常
-					out_en(i,ENABLE);
+					out_channel(i,ENABLE);
 					//通道状态设为打开，在1S内若再次发生，则中断故障比软件限流故障要快，会再次进入该模式
 					eps_state->out_state[i] = OUTPUT_TRYOK;
 					eps_state->out_Toff[i] = toff;
 					pre_state[i] = OUTPUT_ERR;
-					break;
+//					break;
 				}
 				//后面再次进入
 				else
 				{ //在规定时间内没能跳出，则关断当前通道
 					if(eps_state->out_Toff[i]-- == 0)
 					{
-						out_en(i,DISABLE);
+						out_channel(i,DISABLE);
 						//设定钙通道HARD ERROR
 						eps_state->out_state[i] = OUTPUT_HDERR;
+						eps_state->out_Thderr[i] = tout_hderr;
 					}
 				}
-//				break;
+				break;
 			case OUTPUT_TRYOK:
-				out_en(i,ENABLE);
+				out_channel(i,ENABLE);
 				eps_state->out_state[i] = OUTPUT_ON;
 				pre_state[i] = OUTPUT_OFF;
 				break;
 			case OUTPUT_HDERR:
 				//lock the output in disable state
-				out_en(i,DISABLE);
+				out_channel(i,DISABLE);
 				pre_state[i] = OUTPUT_OFF;
 				//lock the output state in HARDWARE ERROE STATE,
 				eps_state->out_state[i] = OUTPUT_HDERR;
+				if(eps_state->out_Thderr[i]-- > 0)
+				{
+					if(eps_state->out_Thderr[i] == 0) 
+					{
+						out_channel(i,ENABLE);
+						eps_state->out_state[i] = OUTPUT_ON;
+					}
+				}
 				break;
 			default:
 			break;
@@ -550,29 +613,365 @@ static uint16_t batSOC(eps_bat_t *bat,uint16_t volt,uint16_t curr)
 	return soc;
 }
 /**
-*@bref     battery process function
-*@detail   根据电池电压，判断当前所处状态
-*          根据电池电流判断充放电状态
-*          根据电池电池板温度判断电池板当前状态，是否需要加热
-*          调用batSOC() 完成电池剩余电量的计算
-*          调用batSOCpermanent() 完成电池容量的计算
-*@para     none
-*@reteval  none
+*@bref 返回当前电压，外部充电接通之前和接通之后的压差
+*@detail
+*@para   
+*@reteval
 */
-static void bat_data_processing(eps_hk_adc_t *eps_adc,eps_bat_t *eps_bat)
+static uint16_t bat_charge_voltdrop(uint16_t bat_volt)
 {
-	uint16_t volt_hyst = 50;//mV
+	return 10;//mv
+}
+/*
+typedef enum{
+	BAT_DISCH = 0,
+	BAT_CHARGE,
+	BAT_NOCURR
+}bat_charge_state_t;
+*/
+/**
+*@bref    电池当前充放电状态
+*@detail
+*@para
+*@reteval bat_curr ：电池电流，正表示充电电流，负表示放电电流
+*/
+static uint16_t bat_charge(eps_hk_adc_t *eps_adc, eps_bat_t *eps_bat )
+{
+	uint8_t i;
+	uint8_t charge_source = 0;//0=SV source;1=External source
 	uint16_t curr_hyst = 2;//mA
-	uint16_t bat_volt;
-	uint16_t bat_curr,bat_curr_in,bat_curr_out;
-	int16_t  bat_temp1,bat_temp2;
-	uint16_t bat_pre_state;
-	bat_volt = eps_adc->v_bus;
-	bat_curr_in = eps_adc->c_sv[0]+eps_adc->c_sv[1]+eps_adc->c_sv[2]
-								+eps_adc->c_sv[3]+eps_adc->c_sv[4]+eps_adc->c_sv[5];
+	uint16_t volt_svin_hyst = 200;//mV
+	int16_t  bat_curr;     //????,???????,???????
+	uint16_t bat_curr_in,bat_curr_out;
+	
+//	bat_charge_state_t bat_charge_temp = BAT_NOCURR;
+	/*????????,????????????*/
+	
+	uint16_t v_bus_cur;
+	
+	static bat_charge_state_t bat_charge_state_back;
+	static uint16_t v_bus_old, bat_charge_cnt, v_bus_back;
+	static uint16_t bat_voltsqe[20] = {0};
+	static uint8_t bat_volt_ptr = 0;//
+	static uint8_t bat_volt_flag = 0; 
+	/*?????????????
+	???SV????6?,
+	?????????,????????
+	????????????????*/
+	/*6?SV??*/
+	for(i=0;i<SV_NUM;i++)
+	{
+		if(eps_adc->v_sv[i] > eps_adc->v_bus + volt_svin_hyst)
+		{
+			/*???????????????????SV source
+			????*/
+			charge_source = 0;
+			break;
+		}
+		else
+		{
+			charge_source = 1;
+		}
+	}
+	//??????????????????
+	eps_bat->bat_charge = BAT_DISCH;
 	bat_curr_out = eps_adc->c_bus;
+	/*SV source*/
+	if(charge_source == 0)
+	{
+		bat_curr_in = eps_adc->c_sv[0]+eps_adc->c_sv[1]+eps_adc->c_sv[2]
+								+eps_adc->c_sv[3]+eps_adc->c_sv[4]+eps_adc->c_sv[5];
+		
+		if(bat_curr_in > bat_curr_out + curr_hyst)
+		{
+			eps_bat->bat_charge = BAT_SV_CHARGE;
+			bat_curr = bat_curr_in - bat_curr_out;
+		}
+		else if(bat_curr_in < bat_curr_out - curr_hyst)
+		{
+			eps_bat->bat_charge = BAT_DISCH;
+			bat_curr = bat_curr_in - bat_curr_out;
+		}
+		else
+		{
+			eps_bat->bat_charge = BAT_NOCURR;
+			bat_curr = 0;
+		}
+		return bat_curr;
+	}
+	else/*??????*/  //modify
+	{
+		
+		v_bus_cur = eps_adc->v_bus;
+		switch(eps_bat->bat_charge)
+		{
+			case BAT_DISCH:  //??????
+				if(v_bus_cur > v_bus_old)  //????????
+				{
+					if(v_bus_cur - v_bus_old > bat_charge_voltdrop(v_bus_cur))  //????????????
+					{
+						eps_bat->bat_charge = BAT_EXT_CHARGE_PRE;
+						bat_charge_cnt = 2000;
+						v_bus_back = v_bus_old;
+						bat_charge_state_back = BAT_DISCH;
+					}
+				}
+			break;
+			case BAT_EXT_CHARGE_PRE:  //????????
+				if(bat_charge_cnt > 0)
+				{
+					if(v_bus_cur - v_bus_back > bat_charge_voltdrop(v_bus_back))
+					{
+						bat_charge_cnt--;
+					}
+					else
+					{
+						bat_charge_cnt = 0;
+						eps_bat->bat_charge = bat_charge_state_back;
+					}
+				}
+				else
+				{
+					bat_charge_cnt = 0;
+					eps_bat->bat_charge = BAT_EXT_CHARGE;
+				}	
+			break;
+				
+			case BAT_EXT_CHARGE:
+				if(v_bus_cur < v_bus_old)
+				{
+					eps_bat->bat_charge = BAT_DISCH_PRE;
+					bat_charge_cnt = 500;
+					v_bus_back = v_bus_old;
+					
+					bat_charge_state_back = BAT_EXT_CHARGE;
+					
+				}
+			break;
+				
+			case BAT_DISCH_PRE:	
+				if(bat_charge_cnt > 0)
+				{
+					if(v_bus_cur < v_bus_back)
+					{
+						bat_charge_cnt--;
+					}
+					else
+					{
+						bat_charge_cnt = 0;
+						eps_bat->bat_charge = bat_charge_state_back;
+					}
+				}
+				else
+				{
+					bat_charge_cnt = 0;
+					eps_bat->bat_charge = BAT_DISCH;
+				}	
+			break;
+		}
+		v_bus_old = v_bus_cur;
+		
+//		if(bat_volt_ptr >= 20)
+//		{ /*??????,???????????*/
+//			bat_volt_ptr--;
+//			if(bat_voltsqe[bat_volt_ptr] + bat_charge_voltdrop(eps_adc->v_bus) < eps_adc->v_bus )
+//			{
+//				bat_volt_flag = 1;
+//				bat_volt_ptr = 20;
+//			}/*??????,?????????*/
+//			else if (bat_voltsqe[bat_volt_ptr] - bat_charge_voltdrop(eps_adc->v_bus) > eps_adc->v_bus )
+//			{
+//				bat_volt_flag = 0;
+//				bat_volt_ptr = 40;
+//			}
+//			else /*??????*/
+//			{/*?????20?????,??????*/
+//				if(bat_volt_flag == 1)
+//				{
+//					if(bat_volt_ptr++ >= 40) 
+//					{
+//						eps_bat->bat_charge = BAT_EXT_CHARGE;
+//					}
+//				}
+//				/*?????20?????,??????*/
+//				else if(bat_volt_flag == 0)
+//				{
+//					if(bat_volt_ptr-- <=20)
+//					{
+//						eps_bat->bat_charge = BAT_DISCH;
+//					}
+//				}					
+//				
+//			}
+//		}
+//		else //??????
+//		{
+//			bat_voltsqe[bat_volt_ptr++] = eps_adc->v_bus;
+//		}
+		/*?????,????????,?????0,????????*/
+		return bat_curr = 0;  
+	}	
+}
+
+//static uint16_t bat_charge(eps_hk_adc_t *eps_adc, eps_bat_t *eps_bat )
+//{
+//	uint8_t i;
+//	uint8_t charge_source = 0;//0=SV source;1=External source
+//	uint16_t curr_hyst = 2;//mA
+//	uint16_t volt_svin_hyst = 200;//mV
+//	int16_t  bat_curr;     //电池电流，正表示充电电流，负表示放电电流
+//	uint16_t bat_curr_in,bat_curr_out;
+//	
+////	bat_charge_state_t bat_charge_temp = BAT_NOCURR;
+//	/*定义电池电压队列，用来判断电池的充放电状态*/
+//	static uint16_t bat_voltsqe[20] = {0};
+//	static uint8_t bat_volt_ptr = 0;//
+//	static uint8_t bat_volt_flag = 0; 
+//	/*由于充电电流来源有两个方向
+//	一个是SV输入端共6路，
+//	一个是外界供电充电，采用两种判断策略
+//	最后依据两种策略的输出做最终判断*/
+//	/*6路SV充电*/
+//	for(i=0;i<SV_NUM;i++)
+//	{
+//		if(eps_adc->v_sv[i] > eps_adc->v_bus + volt_svin_hyst)
+//		{
+//			/*任何一个输入端电压大于母线电压则认为是SV source
+//			跳出循环*/
+//			charge_source = 0;
+//			break;
+//		}
+//		else
+//		{
+//			charge_source = 1;
+//		}
+//	}
+//	//只要上电无供电源的情况下就是放电状态
+//	eps_bat->bat_charge = BAT_DISCH;
+//	bat_curr_out = eps_adc->c_bus;
+//	/*SV source*/
+//	if(charge_source == 0)
+//	{
+//		bat_curr_in = eps_adc->c_sv[0]+eps_adc->c_sv[1]+eps_adc->c_sv[2]
+//								+eps_adc->c_sv[3]+eps_adc->c_sv[4]+eps_adc->c_sv[5];
+//		
+//		if(bat_curr_in > bat_curr_out + curr_hyst)
+//		{
+//			eps_bat->bat_charge = BAT_SV_CHARGE;
+//			bat_curr = bat_curr_in - bat_curr_out;
+//		}
+//		else if(bat_curr_in < bat_curr_out - curr_hyst)
+//		{
+//			eps_bat->bat_charge = BAT_DISCH;
+//			bat_curr = bat_curr_in - bat_curr_out;
+//		}
+//		else
+//		{
+//			eps_bat->bat_charge = BAT_NOCURR;
+//			bat_curr = 0;
+//		}
+//		return bat_curr;
+//	}
+//	else/*外部电源充电*/
+//	{
+//		if(bat_volt_ptr >= 20)
+//		{ /*外部电源接上，电池电压会有一定的抬升*/
+//			if(bat_voltsqe[bat_volt_ptr] + bat_charge_voltdrop(eps_adc->v_bus) < eps_adc->v_bus )
+//			{
+//				bat_volt_flag = 1;
+//				bat_volt_ptr = 20;
+//			}/*外部电源移除，电压会有一定的下降*/
+//			else if (bat_voltsqe[bat_volt_ptr] - bat_charge_voltdrop(eps_adc->v_bus) > eps_adc->v_bus )
+//			{
+//				bat_volt_flag = 0;
+//				bat_volt_ptr = 40;
+//			}
+//			else /*电平处于常态*/
+//			{/*上升沿持续20个采样周期，认为稳定充电*/
+//				if(bat_volt_flag == 1)
+//				{
+//					if(bat_volt_ptr++ >= 40) 
+//					{
+//						eps_bat->bat_charge = BAT_EXT_CHARGE;
+//					}
+//				}
+//				/*下降沿持续20个采样周期，认为充电移除*/
+//				else if(bat_volt_flag == 0)
+//				{
+//					if(bat_volt_ptr-- <=20)
+//					{
+//						eps_bat->bat_charge = BAT_DISCH;
+//					}
+//				}					
+//				
+//			}
+//		}
+//		else //初始填充队列
+//		{
+//			bat_voltsqe[bat_volt_ptr++] = eps_adc->v_bus;
+//		}
+//		/*外部充电时，是在地面调试阶段，返回电流值0,加热函数不会加热*/
+//		return bat_curr = 0;  
+//	}	
+//}
+/**
+*@bref     battery heater function
+*@detail
+*@para     eps_adc     
+*@         eps_bat
+*@reteval  eps_heater_state    YES=heating;NO=notheating
+*/
+static bat_heater_state_t bat_heat(eps_hk_adc_t *eps_adc, eps_bat_t *eps_bat)
+{
+	int16_t  bat_temp1,bat_temp2;
 	bat_temp1 = eps_adc->temp_bat[0];
 	bat_temp2 = eps_adc->temp_bat[1];
+	/*battery heat auto mode*/
+	if(eps_bat->bat_heater_mode == 1) 
+	{
+		switch (eps_bat->bat_heater_status)
+		{
+			case NO:
+			if(bat_temp1 < bat_heater_low || bat_temp2 < bat_heater_low)
+			{
+				if(eps_bat->bat_state > BAT_CRITICAL)
+				{
+					bat_heater_on();
+				  eps_bat->bat_heater_status = YES;
+				}
+			}
+				break;
+			case YES:
+				if(bat_temp1 > bat_heater_high || bat_temp2 > bat_heater_high)
+				{
+					bat_heater_off();
+					eps_bat->bat_heater_status = NO;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	
+	else/* if(eps_bat->bat_heater_mode == 0)  //manual mode*/
+	{
+		
+	}
+	return eps_bat->bat_heater_status;
+}
+/**
+*@
+*@
+*@
+*/
+static bat_state_t bat_state(eps_bat_t *eps_bat, uint16_t bat_volt)
+{
+	uint16_t volt_hyst = 50;//mV
+
+//	uint16_t bat_volt;
+
+	bat_state_t  bat_pre_state;
+	
 	bat_pre_state = eps_bat->bat_state;
 /* 根据电压判断当前状态，为避免震荡，设定电压降低时根据设定值判断
 	*电压升高时，判断值增加0.05v，即50mV的滞回量
@@ -639,56 +1038,40 @@ static void bat_data_processing(eps_hk_adc_t *eps_adc,eps_bat_t *eps_bat)
 		default:
 			break;
 	}
-	
-	/*根据电流情况判断充放电状态
+	eps_bat->bat_status = bat_status_char[eps_bat->bat_state];
+	return eps_bat->bat_state;
+}
+/**
+*@bref     battery process function
+*@detail   根据电池电压，判断当前所处状态
+*          根据电池电流判断充放电状态
+*          根据电池电池板温度判断电池板当前状态，是否需要加热
+*          调用batSOC() 完成电池剩余电量的计算
+*          调用batSOCpermanent() 完成电池容量的计算
+*@para     none
+*@reteval  none
+*/
+static void bat_data_processing(eps_hk_adc_t *eps_adc,eps_bat_t *eps_bat)
+{
+	uint16_t bat_volt;
+	int16_t bat_curr;
+	bat_volt = eps_adc->v_bus;
+	/**根据电压状态判断电池状态
 	*************************************************************
+	*@battery voltage state
 	*/
-	if(bat_curr_in > bat_curr_out + curr_hyst)
-	{
-		eps_bat->bat_charge = BAT_CHARGE;
-		bat_curr = bat_curr_in - bat_curr_out;
-	}
-	else if(bat_curr_in < bat_curr_out - curr_hyst)
-	{
-		eps_bat->bat_charge = BAT_DISCH;
-		bat_curr = bat_curr_out - bat_curr_in;
-	}
-	else
-	{
-		eps_bat->bat_charge = BAT_NOCURR;
-		bat_curr = 0;
-	}
-	/*根据温度判断电池加热
+	bat_state(eps_bat, bat_volt);
+	/**根据电流情况判断充放电状态
+	*************************************************************
+	*@battery charge state
+	*/
+	bat_curr = bat_charge(eps_adc,eps_bat);
+	/**根据温度判断电池加热
 	*0 = manual ;1 = auto
 	*************************************************************
+	*@battery heat function
 	*/
-	if(eps_bat->bat_heater_mode )
-	{
-		switch (eps_bat->bat_heater_status)
-		{
-			case NO:
-			if(bat_temp1 < bat_heater_low || bat_temp2 < bat_heater_low)
-			{
-				if(eps_bat->bat_state > BAT_CRITICAL)
-				{
-					bat_heater_on();
-				  eps_bat->bat_heater_status = YES;
-				}
-				
-			}
-				break;
-			case YES:
-				if(bat_temp1 > bat_heater_high || bat_temp2 > bat_heater_high)
-				{
-					bat_heater_off();
-					eps_bat->bat_heater_status = NO;
-				}
-				break;
-			default:
-				break;
-		}
-	}
-	
+  bat_heat(eps_adc,eps_bat);
 	/**
 	******************************************************************
 	*@batSOC  battery SOC function

@@ -16,8 +16,8 @@
 
 typedef eps_ppt_t PPT_Typedef;
 
-static float ppt_fixed(PPT_Typedef *ppt);
-static float ppt_auto(PPT_Typedef *ppt);
+static float ppt_fixed(PPT_Typedef *ppt,uint16_t chan);
+static float ppt_auto(PPT_Typedef *ppt, uint16_t chan);
 void ppt_data_Init(PPT_Typedef *ppt,uint8_t ppt_num);
 void ppt_pid_Init(arm_pid_instance_f32 *pid_para, PID_Typedef *pid_var, uint8_t pid_num);
 static uint16_t  pptSlidingFilter(uint16_t adc_value, uint16_t adc_count);

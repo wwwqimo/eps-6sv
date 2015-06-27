@@ -144,7 +144,7 @@
             <UsePdscDebugDescription>0</UsePdscDebugDescription>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>6</TargetSelection>
+          <TargetSelection>7</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -519,6 +519,21 @@
               <FileName>bsp_ad7490.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\userbsp\bsp_ad7490.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_gradient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_gradient.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_perturb_observe.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_perturb_observe.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_inccond.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_inccond.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1368,6 +1383,21 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\userbsp\bsp_ad7490.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_mppt_gradient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_gradient.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_perturb_observe.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_perturb_observe.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_inccond.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_inccond.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2215,6 +2245,21 @@
               <FileName>bsp_ad7490.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\user_app\userbsp\bsp_ad7490.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_gradient.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_gradient.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_perturb_observe.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_perturb_observe.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_mppt_inccond.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\user_app\userbsp\bsp_mppt_inccond.c</FilePath>
             </File>
           </Files>
         </Group>

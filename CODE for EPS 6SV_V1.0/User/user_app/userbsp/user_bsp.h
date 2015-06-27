@@ -14,8 +14,9 @@
 #include "bsp_mppt.h"
 #include "bsp_pid.h"
 #include "bsp_ad7490.h"
-
-
+#include "bsp_mppt_gradient.h"
+#include "bsp_mppt_perturb_observe.h"
+#include "bsp_mppt_inccond.h"
 void user_bsp_Init(void);
 
 #endif

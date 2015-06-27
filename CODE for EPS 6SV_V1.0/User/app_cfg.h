@@ -37,7 +37,7 @@
 #define  APP_TASK_COM_NAME                            "COM Task"
 
 #define  APP_TASK_ADC_NAME                            "ADC Task"
-#define  APP_TASK_SAS_NAME                            "SAS Task"
+#define  APP_TASK_USER_NAME                            "User Task"
 #define  APP_TASK_MPPT_NAME                           "MPPT Task"
 #define  APP_TASK_LED_NAME                            "LED Task"
 
@@ -54,7 +54,7 @@
 #define  APP_TASK_COM_PRIO								                 4
 
 #define  APP_TASK_ADC_PRIO                                 10
-#define  APP_TASK_SAS_PRIO                                 11
+#define  APP_TASK_USER_PRIO                                 11
 #define  APP_TASK_MPPT_PRIO                                12
 
 
@@ -74,7 +74,7 @@
 #define  APP_TASK_COM_STK_SIZE							             1024
 
 #define  APP_TASK_ADC_STK_SIZE                           1024
-#define  APP_TASK_SAS_STK_SIZE                           1024
+#define  APP_TASK_USER_STK_SIZE                           1024
 #define  APP_TASK_MPPT_STK_SIZE                          1024
 
 

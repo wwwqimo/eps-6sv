@@ -139,15 +139,24 @@ void printf_sv(void)
 	float power_inall = 0;
 	float power_in = 0;
 	float efficiency = 0;
-	printf("|****Eps SV 6 *--Voltage*--Current*--PowerIn*--Efficiency*************************************|\r\n");
+	printf("|****Eps SV 6 *--Voltage*--Current*--PowerIn*--Mode-----*--Efficiency***|\r\n");
 	for(i=0;i<SV_NUM;i++){
 	power_in = (float)ppt_conv[i].curr * ppt_conv[i].volt/1000000;
-	printf("| eps sv[%1d]     %5.3fV     %4dmA    %5.3fW\r\n",i,((float)ppt_conv[i].volt)/1000,ppt_conv[i].curr,power_in);
+	printf("| eps sv[%1d]     %5.3fV     %4dmA    %5.3fW",i,((float)ppt_conv[i].volt)/1000,ppt_conv[i].curr,power_in);
 	power_inall += power_in;	
+	if(ppt_conv[i].mode == 0)
+	{
+		printf("    Fixed Point\r\n");
+	}
+	else
+	{
+		printf("    Auto Ppt\r\n");
+	}
 	}
 	printf("| power_inall                         %5.3fW\r\n",power_inall);
 	efficiency = (float)eps_adc_data.c_sva * eps_adc_data.v_bus/1000000/power_inall;
-	printf("|********************************************      %4.2f%%\r\n",efficiency*100);
+	printf("|*****************************************************      %4.2f%%\r\n",efficiency*100);
+	
 }
 
 void printf_bat(void)

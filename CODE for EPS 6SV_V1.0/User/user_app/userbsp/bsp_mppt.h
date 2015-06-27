@@ -25,21 +25,18 @@ typedef struct{
 	double v_diff,c_diff;//电压电流差
 	double v_diff_min,c_diff_min,r_diff_min;//电压电流最小差值，判断是否为零的比较判据
 	double step;        //步进大小
-	double in;        //输出值
-	double in_max,in_min;//输出值最大值，最小值
-	
+	double in_set;          //设定输出值
+	double v_inmax,v_inmin;//输出值最大值，最小值
 }mppt_incond_t;
 
 #endif
-
-
 
 
 void bsp_MPPT_Init(void);
 
 #if MPPT_INC_CONDC_EN > 0u
 void bsp_mppt_incond_Init_indep(mppt_incond_t * mpptc,double instep,double c_diffmin,double v_diffmin,double r_diffmin,double inmax,double inmin);
-mppt_incond_t mppt_incond(mppt_incond_t * mpptc,double volt,double curr);
+mppt_incond_t *mppt_incond(mppt_incond_t * mpptc,double volt,double curr);
 
 #endif
 

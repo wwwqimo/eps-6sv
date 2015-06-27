@@ -33,14 +33,8 @@ static void bsp_InitALLGPIO(void);
 
 void bsp_InitGPIO(void)
 {
-	bsp_InitALLGPIO();
-
-	GPIO_DeInit(GPIOA);
-	GPIO_DeInit(GPIOB);
-	GPIO_DeInit(GPIOC);
-	GPIO_DeInit(GPIOD);
-	GPIO_DeInit(GPIOE);
 //	bsp_InitALLGPIO();
+
 	#if EPS_FAULT_USED > 0u
 	out_fault_en(DISABLE);
 	#endif
@@ -64,32 +58,32 @@ void bsp_InitGPIO(void)
 	bsp_InitGPIO_FAULT();
 	#endif
 }
-static void bsp_InitALLGPIO(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	/* 打开GPIO时钟 */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-	
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN ;		/* 设为输出口 */
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	/* 上下拉电阻不使能 */
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	/* IO口最大速度 */
+//static void bsp_InitALLGPIO(void)
+//{
+//	GPIO_InitTypeDef GPIO_InitStructure;
+//	/* 打开GPIO时钟 */
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+//	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+//	
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN ;		/* 设为输出口 */
+//	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
+//	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	/* 上下拉电阻不使能 */
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	/* IO口最大速度 */
 
-	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-	GPIO_Init(GPIOD, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
-}
+//	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+//	GPIO_Init(GPIOA, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+//	GPIO_Init(GPIOC, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+//	GPIO_Init(GPIOD, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin =GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+//	GPIO_Init(GPIOE, &GPIO_InitStructure);
+//}
 /**
 *@bref    eps battery board heater switch gpio init
 *@para
@@ -236,29 +230,29 @@ static void bsp_InitGPIO_DS(void)
 #if EPS_FAULT_USED >0u
 static void bsp_InitGPIO_FAULT(void)
 {
-	EXTI_InitTypeDef   EXTI_InitStructure;
-	NVIC_InitTypeDef   NVIC_InitStructure;
-	
-	/* 使能SYSCFG时钟 */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-	/* 连接 EXTI Line0 到 PD0 引脚 */
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource0);
-	/* 配置 EXTI LineXXX */
-	EXTI_InitStructure.EXTI_Line = EXTI_Line0;
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure);
-	
-	/* 设置NVIC优先级分组为Group2：0-3抢占式优先级，0-3的响应式优先级 */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-	
-	/* 中断优先级配置 最低优先级 这里一定要分开的设置中断，不能够合并到一个里面设置 */
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
+//	EXTI_InitTypeDef   EXTI_InitStructure;
+//	NVIC_InitTypeDef   NVIC_InitStructure;
+//	
+//	/* 使能SYSCFG时钟 */
+//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+//	/* 连接 EXTI Line0 到 PD0 引脚 */
+//	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource0);
+//	/* 配置 EXTI LineXXX */
+//	EXTI_InitStructure.EXTI_Line = EXTI_Line0;
+//	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+//	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+//	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+//	EXTI_Init(&EXTI_InitStructure);
+//	
+//	/* 设置NVIC优先级分组为Group2：0-3抢占式优先级，0-3的响应式优先级 */
+//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+//	
+//	/* 中断优先级配置 最低优先级 这里一定要分开的设置中断，不能够合并到一个里面设置 */
+//	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitStructure);
 	
 }
 #endif
@@ -267,11 +261,11 @@ static void bsp_InitGPIO_FAULT(void)
 */
 void out_fault_en(FunctionalState NewState)
 {
-	NVIC_InitTypeDef   NVIC_InitStructure;
+//	NVIC_InitTypeDef   NVIC_InitStructure;
 
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = NewState;
-	NVIC_Init(&NVIC_InitStructure);
+//	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = NewState;
+//	NVIC_Init(&NVIC_InitStructure);
 }
 
 

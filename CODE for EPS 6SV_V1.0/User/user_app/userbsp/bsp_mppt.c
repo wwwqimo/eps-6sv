@@ -8,12 +8,10 @@
 
 #include "bsp_mppt.h"
 
+
+
 #if MPPT_INC_CONDC_EN > 0u
-
-mppt_incond_t mppt_conv[mppt_num];
-
-static void bsp_mppt_incond_Init(void);
-#endif
+ 
 /*
 *******************************************************************************************************
 **Incremental conductance method
@@ -40,33 +38,14 @@ static void bsp_mppt_incond_Init(void);
 **   
 ******************************************************************************************************
 */
-void bsp_MPPT_Init(void)
-{
-	#if MPPT_INC_CONDC_EN > 0u
-	  bsp_mppt_incond_Init();
-	#endif
-	
-}
-
-#if MPPT_INC_CONDC_EN > 0u
-
-/*
-*mppt 通道初始化程序
-*
-*/
-static void bsp_mppt_incond_Init(void)
-{
-	uint8_t i;
-	memset(&mppt_conv[0],0,sizeof(mppt_incond_t)*mppt_num);
-	for(i=0;i<mppt_num;i++)
-	{
-		bsp_mppt_incond_Init_indep(&mppt_conv[i],0.1,0.001,0.001,0.001,15.0,4.0);
-	}
-} 
-/*单独mppt通道初始化
-*mpptc mppt 结构体
-*instep     每次步进大小
-*
+/**单独mppt通道初始化
+*@mpptc      mppt incond 结构体
+*@instep     每次步进大小
+*@c_diffmin  作为判断进行到最大功率点的最小分辨电流
+*@v_diffmin  作为判断进行到最大功率点的最小分辨电压
+*@r_diffmin  作为判断进行到最大功率点的最小分辨电导
+*@v_inmax    最大输入电压控制
+*@v_inmin    最小输入电压控制
 */
 void bsp_mppt_incond_Init_indep(mppt_incond_t * mpptc,double instep,double c_diffmin,double v_diffmin,double r_diffmin,double inmax,double inmin)
 {
@@ -74,8 +53,8 @@ void bsp_mppt_incond_Init_indep(mppt_incond_t * mpptc,double instep,double c_dif
 	mpptc->c_diff_min = c_diffmin;
 	mpptc->v_diff_min = v_diffmin;
 	mpptc->r_diff_min = r_diffmin;
-	mpptc->in_max = inmax;
-	mpptc->in_min = inmin;
+	mpptc->v_inmax = inmax;
+	mpptc->v_inmin = inmin;
 }
 /*
 **mppt 电导增量法实现程序
@@ -84,7 +63,7 @@ void bsp_mppt_incond_Init_indep(mppt_incond_t * mpptc,double instep,double c_dif
 **      volt     采样电压
 **      curr     采样电流
 */     
-mppt_incond_t mppt_incond(mppt_incond_t * mpptc,double volt,double curr)
+mppt_incond_t *mppt_incond(mppt_incond_t * mpptc,double volt,double curr)
 {
 	mpptc->v_cur = volt;
 	mpptc->c_cur = curr;
@@ -98,12 +77,12 @@ mppt_incond_t mppt_incond(mppt_incond_t * mpptc,double volt,double curr)
 		//步骤4.1； c_diff > 0.增大输出
 		if(mpptc->c_diff > mpptc->c_diff_min)
 		{
-			mpptc->in += mpptc->step;
+			mpptc->in_set += mpptc->step;
 		}
 		//步骤4.1； c_diff < 0,减小输出
 		else if(mpptc->c_diff + mpptc->c_diff_min < 0)
 		{
-			mpptc->in -= mpptc->step;
+			mpptc->in_set -= mpptc->step;
 		}
 	}
 	//步骤5；判断c_diff/v_diff = -c_value/v_value是否成立，
@@ -113,37 +92,33 @@ mppt_incond_t mppt_incond(mppt_incond_t * mpptc,double volt,double curr)
 		//Y 增加扰动输出
 		if(mpptc->c_diff/mpptc->v_diff + mpptc->c_cur/mpptc->v_cur > mpptc->r_diff_min)
 		{
-			mpptc-in += mpptc->step;
+			mpptc->in_set += mpptc->step;
 		}
 		// N减小扰动输出
 		else if(mpptc->c_diff/mpptc->v_diff + mpptc->c_cur/mpptc->v_cur < (-mpptc->r_diff_min))
 		{
-			mpptc->in -=mpptc->step;
+			mpptc->in_set -=mpptc->step;
 		}	
 	}
 	//步骤6；
 	mpptc->c_pre = mpptc->c_cur;
 	mpptc->v_pre = mpptc->v_cur;
 	//输出范围检查
-	if(mpptc->in > mpptc->in_max)
+
+	if(mpptc->in_set > mpptc->v_inmax)
 	{
-		mpptc->in = mpptc->in_max;
+		mpptc->in_set = mpptc->v_inmax;
 	}
-	else if(mpptc->in < mpptc->in_min)
+	else if(mpptc->in_set < mpptc->v_inmin)
 	{
-		mpptc->in =mpptc->in_min;
+		mpptc->in_set =mpptc->v_inmin;
 	}
-	
+	return mpptc;
 }
-return mpptc;
 
 #endif
 
 
-void ppt_alloff(void)
-{
-	
-}
 
 
 

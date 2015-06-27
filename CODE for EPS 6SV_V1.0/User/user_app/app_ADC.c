@@ -60,6 +60,8 @@ void ADCSample(void)
 	memset(peps_hk_adc,0,sizeof(eps_hk_adc_t));
 	memset(pdata,0,sizeof(uint16_t)*hk_adc_num);
 	
+	bsp_AD7490_Init();
+	
 	while(1)
 	{
 		//获取mcu adc 和 ad7490 adc值，并对值进行滑动滤波处理，
@@ -69,8 +71,8 @@ void ADCSample(void)
 		#if USER_DEBUG_EN > 0
 //		eps_print(print_adc);
     #endif
-		user_data_handling();
-		OSTimeDlyHMSM(0, 0, 0, 1000);	
+//		eps_data_handling();
+		OSTimeDlyHMSM(0, 0, 0, 100);	
 	}
 }
 

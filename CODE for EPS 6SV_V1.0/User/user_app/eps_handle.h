@@ -10,38 +10,13 @@
 
 #ifndef __EPS_HANDLE_H__
 #define __EPS_HANDLE_H__
-
+#include "stm32f4xx.h"
 
 /**
 	*@defineoutput
 	*/
-//#define EPS_4version
-#ifdef EPS_4version
-	#define OUT_REG1   1
-	#define OUT_REG2   2
-	#define OUT_REG3   3	
-	#define OUT_REG4   4
-	#define OUT_REG5   5
-	#define OUT_REG6   6	
-	#define OUT_UREG1   7
-	#define OUT_UREG2   8
-	#define OUT_UREG3   9
-	#define OUT_UREG4   10
-	#define OUT_UREG5   11
-	#define OUT_DEPLOY  12
-//define with usage name
-	#define OUT_ALL      0
-	#define OUT_GPSA    OUT_REG1
-	#define OUT_GPSB    OUT_REG2
-	#define OUT_MTQ      OUT_UREG1
-	#define OUT_WHEELA      OUT_UREG2
-	#define OUT_WHEELB      OUT_UREG3
-	#define OUT_USB     OUT_UREG4
-	#define OUT_FIPEX5V OUT_REG5
-	#define OUT_FIPEX3V OUT_REG6
-	#define OUT_HEAT    OUT_UREG5
-	#define OUT_RES     OUT_REG3
-#else  //EPS_SVversion
+
+  //EPS_SVversion
 	#define OUT_REG1    0
 	#define OUT_REG2    1
 	#define OUT_REG3    2	
@@ -68,8 +43,6 @@
 	#define OUT_FIPEX5V OUT_REG4
 	#define OUT_FIPEX3V OUT_REG5
 	#define OUT_RES     OUT_REG3
-#endif
-
 
   
 #ifdef EPS_4version
@@ -141,18 +114,21 @@ typedef enum{
 
 #define  bat_volt_drop        100  //battery constant charge set voltage= bat_full_volt + bat_volt_drop [mV]
 #define  bat_volt_hyst_up     50   //battery nearly full charge dropout voltage [mV]
-#define  bat_volt_hyst_down   150  //battery exit from full charge dropout voltage [mV]
+#define  bat_volt_hyst_down   100  //battery exit from full charge dropout voltage [mV]
 typedef enum{
-	BAT_DISCH = 0,
-	BAT_CHARGE,
-	BAT_NOCURR
-}bat_char_state_t;
+	BAT_NOCURR = 0,
+	BAT_DISCH,
+	BAT_DISCH_PRE,
+	BAT_SV_CHARGE,
+	BAT_EXT_CHARGE,
+	BAT_EXT_CHARGE_PRE,
+}bat_charge_state_t;
 typedef enum{NO,YES= !NO}bat_heater_state_t;
 //电池所有状态量结构体
 typedef struct{ 
 	bat_state_t         bat_state;         //电池当前状态
 	char                *bat_status;       //电池当前状态
-	bat_char_state_t    bat_charge;        //电池充电状态
+	bat_charge_state_t    bat_charge;        //电池充电状态
 	bat_heater_state_t  bat_heater_status; //电池加热状态
 	uint32_t            bat_fullcap;       //电池初始能量
 	uint16_t            bat_percent;              //当前电量百分比
@@ -209,14 +185,13 @@ typedef struct eps_hk_state_s{
 	uint16_t out_ocp[REG_NUM + UREG_NUM];//eps out over current soft detecct count number
 	uint16_t out_Ton[REG_NUM + UREG_NUM];      // outputs set n seconds to turn on the output
 	uint16_t out_Toff[REG_NUM + UREG_NUM];     // outputs set n second to turn off the output
+	uint16_t out_Thderr[REG_NUM + UREG_NUM];   /*从HDERR状态恢复的时间 单位[ticks]*/
 	uint16_t out_fault[REG_NUM + UREG_NUM];    //eps every regulated and unregulated outputs fault count number
 	power_state_t eps_power_mode;  //eps power select
 	uint8_t eps_state_reserved; //eps state reserved
-	uint8_t eps_charge_state;  //0=no extern dc source charge, 1=extern dc source charge
 } eps_hk_state_t;
 
 
-extern eps_hk_state_t eps_state;
 
 /*
 *********************************************************************************************
@@ -229,6 +204,8 @@ void eps_allin_off(void);
 void eps_allin_on(void);
 uint8_t bat_heater_on(void);
 uint8_t bat_heater_off(void);
+void out_state_setforce(uint8_t chan,FunctionalState NewState);
+void out_state_clear(uint8_t chan);
 static void out_channel(uint8_t chan,FunctionalState NewState);
 output_state_t out_en(uint8_t chan,FunctionalState NewState);
 int8_t outall_en(FunctionalState NewState);

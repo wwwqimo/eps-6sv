@@ -51,7 +51,7 @@ static OS_STK AppTaskStartStk[APP_TASK_START_STK_SIZE];
 static OS_STK AppTaskCOMStk[APP_TASK_COM_STK_SIZE];
 
 static OS_STK AppTaskADCStk[APP_TASK_ADC_STK_SIZE];
-static OS_STK AppTaskSASStk[APP_TASK_SAS_STK_SIZE];
+static OS_STK AppTaskUserStk[APP_TASK_USER_STK_SIZE];
 static OS_STK AppTaskMPPTStk[APP_TASK_MPPT_STK_SIZE];
 
 static OS_STK AppTaskLEDStk[APP_TASK_LED_STK_SIZE];				
@@ -66,7 +66,7 @@ static void AppTaskStart(void *p_arg);
 static void AppTaskCom(void *p_arg);
 
 static void AppTaskADC(void *p_arg);
-static void AppTaskSAS(void *p_arg);
+static void AppTaskUser(void *p_arg);
 static void AppTaskMPPT(void *p_arg);
 
 static void DispTaskInfo(void);
@@ -189,7 +189,6 @@ static void AppTaskStart(void *p_arg)
   CPU_Init();          
 	BSP_Tick_Init();
 	GetSysClock_info();
-	user_app_Init();
 //  Mem_Init();          
 
 	/* 检测CPU能力，统计模块初始化。该函数将检测最低CPU占有率 */
@@ -252,22 +251,19 @@ static void AppTaskADC(void *p_arg)
 }
 /*
 *********************************************************************************************************
-*	函 数 名: AppTaskSAS
+*	函 数 名: AppTaskUser
 *	功能说明: 			  			  
 *	形    参：p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
 * 优 先 级：11
 *********************************************************************************************************
 */
-static void AppTaskSAS(void *p_arg)
+static void AppTaskUser(void *p_arg)
 {
   (void)p_arg;		/* 避免编译器告警 */
 	
 //	SolarArraySim();
-	while(1)
-	{
-		OSTimeDlyHMSM(0, 0, 0, 500);
-	}
+	user_app();
 	
 }
 
@@ -356,17 +352,17 @@ static void AppTaskCreate (void)
 	OSTaskNameSet(APP_TASK_ADC_PRIO, APP_TASK_ADC_NAME, &err);										
 										
 /* 创建SolarArraySim任务 */
-	OSTaskCreateExt(AppTaskSAS,
+	OSTaskCreateExt(AppTaskUser,
                     (void *)0,
-                    (OS_STK *)&AppTaskSASStk[APP_TASK_SAS_STK_SIZE - 1],
-                    APP_TASK_SAS_PRIO,
-                    APP_TASK_SAS_PRIO,
-                    (OS_STK *)&AppTaskSASStk[0],
-                    APP_TASK_SAS_STK_SIZE,
+                    (OS_STK *)&AppTaskUserStk[APP_TASK_USER_STK_SIZE - 1],
+                    APP_TASK_USER_PRIO,
+                    APP_TASK_USER_PRIO,
+                    (OS_STK *)&AppTaskUserStk[0],
+                    APP_TASK_USER_STK_SIZE,
                     (void *)0,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);
 
-	OSTaskNameSet(APP_TASK_SAS_PRIO, APP_TASK_SAS_NAME, &err);
+	OSTaskNameSet(APP_TASK_USER_PRIO, APP_TASK_USER_NAME, &err);
 										
 		/* 创建MPPT任务 */
 	OSTaskCreateExt(AppTaskMPPT,

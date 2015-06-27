@@ -21,7 +21,7 @@
 
 /*mppt method define*/
 
-#define  MPPT_INC_CONDC_EN  0u
+#define  MPPT_INC_CONDC_EN  1u
 
 #define  MPPT_SIM_EN        0u   //mppt simulation enable
 
